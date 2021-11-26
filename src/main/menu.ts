@@ -22,6 +22,7 @@ export default () => {
   // flush stack
   manager.refresh();
   return Menu.buildFromTemplate([
+    { type: 'normal', label: '历史', enabled: false },
     {
       label: 'history',
       type: 'submenu',
@@ -39,21 +40,33 @@ export default () => {
         };
       }),
     },
+    { type: 'separator', toolTip: '123' },
+    {
+      label: 'clear history',
+      click: () => {
+        clipboard.clear();
+        manager.clear();
+      },
+    },
     { type: 'separator' },
     {
       label: 'dough',
+      sublabel: 'xaaa',
       submenu: [
         {
           label: 'slice',
           click: async () => {
+            manager.lock();
             const previous = manager.get(0);
             await copy();
             const selection = clipboard.readText();
             try {
               const res = await eval(mockText)(selection);
               clipboard.writeText(res);
+              manager.unlock();
               paste();
             } catch (e) {
+              manager.unlock();
               clipboard.writeText(previous);
             }
           },

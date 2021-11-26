@@ -10,10 +10,13 @@ import {
   Tray,
   screen,
   globalShortcut,
+  systemPreferences
 } from 'electron';
+import robot from 'robotjs';
 import getMenu from './menu';
 import { initClipboardListener } from './clipboardManager';
 import { resolveHtmlPath } from './util';
+
 
 let mainWindow: BrowserWindow | null = null;
 let settingWindow: BrowserWindow | null = null;
@@ -134,9 +137,18 @@ const init = async () => {
   }
 };
 
+const showSystemAccessibilityPrompt = () => {
+  systemPreferences.isTrustedAccessibilityClient(true);
+  const cursor = screen.getCursorScreenPoint();
+  robot.moveMouse(cursor.x, cursor.y);
+  // robot.typeString('');
+  // clipboard.writeText(clipboard.readText());
+}
+
 app
   .whenReady()
   .then(() => {
     init();
+    showSystemAccessibilityPrompt();
   })
   .catch(console.log);
