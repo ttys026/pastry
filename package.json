@@ -213,12 +213,15 @@
     "electron-debug": "^3.2.0",
     "electron-log": "^4.4.1",
     "electron-updater": "^4.3.9",
+    "fs-extra": "^10.0.0",
     "history": "4.x.x",
+    "path": "^0.12.7",
     "prismjs": "^1.25.0",
     "react": "^16.8.0",
     "react-dom": "^16.8.0",
     "react-simple-code-editor": "^0.11.0",
-    "regenerator-runtime": "^0.13.9"
+    "regenerator-runtime": "^0.13.9",
+    "robotjs": "^0.6.0"
   },
   "devEngines": {
     "node": ">=14.x",

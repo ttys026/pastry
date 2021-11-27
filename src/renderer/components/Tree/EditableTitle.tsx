@@ -6,6 +6,7 @@ interface Props {
   value: string;
   onChange: (v: string) => void;
   width: number;
+  selected: boolean;
 }
 
 const SingleLineInput = ({
@@ -17,7 +18,7 @@ const SingleLineInput = ({
   value: string;
   onChange: (v: string) => void;
   quitEdit: () => void;
-  width: number
+  width: number;
 }) => {
   useKeyPress('Enter', quitEdit);
   return (
@@ -32,26 +33,70 @@ const SingleLineInput = ({
   );
 };
 
-export default (props: Props) => {
-  const [mode, setMode] = useState<'display' | 'edit'>('display');
-  const [value, setValue] = useState(props.value);
-  return mode === 'display' ? (
+const SingleLineText = ({
+  value,
+  enterEdit,
+  width,
+}: {
+  value: string;
+  enterEdit: () => void;
+  width: number;
+}) => {
+  useKeyPress('Enter', () => {
+    if (document.activeElement?.tagName !== 'TEXTAREA') {
+      enterEdit();
+    }
+  });
+  return (
     <span
       title=""
       style={{
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
-        width: props.width - 5,
-        maxWidth: props.width - 5,
+        width,
+        maxWidth: width,
         display: 'table-cell',
       }}
-      onDoubleClick={() =>
-        setMode((v) => (v === 'display' ? 'edit' : 'display'))
-      }
+      onDoubleClick={enterEdit}
     >
       {value}
     </span>
+  );
+};
+
+export default (props: Props) => {
+  const [mode, setMode] = useState<'display' | 'edit'>('display');
+  const [value, setValue] = useState(props.value);
+  return mode === 'display' ? (
+    <>
+      {props.selected ? (
+        <SingleLineText
+          value={value}
+          enterEdit={() =>
+            setMode((v) => (v === 'display' ? 'edit' : 'display'))
+          }
+          width={props.width - 5}
+        />
+      ) : (
+        <span
+          title=""
+          style={{
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            width: props.width - 5,
+            maxWidth: props.width - 5,
+            display: 'table-cell',
+          }}
+          onDoubleClick={() =>
+            setMode((v) => (v === 'display' ? 'edit' : 'display'))
+          }
+        >
+          {value}
+        </span>
+      )}
+    </>
   ) : (
     <SingleLineInput
       width={props.width}

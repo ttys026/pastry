@@ -1,7 +1,8 @@
 import { Tree } from 'antd';
-import { useRef, useState } from 'react';
-import type { EventDataNode, DataNode } from 'rc-tree/lib/interface';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { DataNode } from 'rc-tree/lib/interface';
 import EditableTitle from './EditableTitle';
+import { findChild } from '../../utils';
 
 const mock = [
   {
@@ -41,19 +42,47 @@ const mock = [
   },
 ];
 
+const getTreeData = async () =>
+  await window.ipcRenderer.invoke('getData', 'tree');
+
+const saveTreeData = async (data: string) => {
+  await window.ipcRenderer.invoke('setData', { key: 'tree', data });
+};
+
 export default () => {
   const [key, setKey] = useState(0);
-  const [treeData, setTreeData] = useState<DataNode[]>(mock);
+  const [treeData, _setTreeData] = useState<DataNode[]>([]);
+  const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const [expandedKeys, setExpandedKeys] = useState<Array<string | number>>([
     '0-0',
     '0-1',
   ]);
   const previousExpandedKeys = useRef<any>([]);
   const previousDragLeaf = useRef(true);
-  const draggingNode = useRef<EventDataNode | null>(null);
-  const onSelect = (keys: React.Key[], info: any) => {
-    console.log('Trigger Select', keys, info);
+  const draggingNode = useRef<DataNode | null>(null);
+  const onSelect = (_: React.Key[], info: any) => {
+    setSelectedKeys([info.node.key]);
   };
+
+  useEffect(() => {
+    getTreeData().then((res) => {
+      if (res === undefined) {
+        _setTreeData(mock);
+      } else {
+        _setTreeData(JSON.parse(res || '[]'));
+      }
+    });
+  }, []);
+
+  const setTreeData: typeof _setTreeData = useCallback((state) => {
+    const newStateGetter: any =
+      typeof state === 'function' ? state : () => state;
+    _setTreeData((s) => {
+      const newState = newStateGetter(s);
+      saveTreeData(JSON.stringify(newState));
+      return newState;
+    });
+  }, []);
 
   return (
     <div
@@ -65,29 +94,29 @@ export default () => {
         if (node?.isLeaf) {
           setTreeData((s) => {
             const temp = [...s];
-            temp.find((p) => {
-              const foundIndex = p.children?.findIndex((ele) => {
-                return ele.key === node.key;
-              });
-              if (foundIndex !== -1) {
-                p.children?.splice(foundIndex!, 1);
-                return true;
-              }
-              return false;
-            });
-            temp[temp.length - 1].children?.push(node);
+            findChild({ tree: temp, node }, (i) => ({
+              self: (self) => {
+                temp[temp.length - 1].children!.push(self);
+              },
+              parent: (parent) => {
+                parent.children!.splice(i, 1);
+              },
+            }));
             return temp;
           });
         } else {
           setTreeData((s) => {
             const temp = [...s];
-            const removed = temp.splice(
-              temp.findIndex((ele) => ele.key === node!.key),
-              1
-            );
+            let removed: DataNode[] = [];
+            findChild({ tree: temp, node: node! }, (i) => ({
+              self: () => {
+                removed = temp.splice(i, 1);
+              },
+            }));
             return temp.concat(removed);
           });
         }
+        // HACK: placeholder 不会消失，需要更新一下 tree 的 key
         setKey((k) => k + 1);
       }}
       id="tree-container"
@@ -96,6 +125,7 @@ export default () => {
         key={key}
         expandAction={false}
         multiple={false}
+        selectedKeys={selectedKeys}
         expandedKeys={expandedKeys}
         draggable={{ icon: false }}
         titleRender={(node) => {
@@ -103,23 +133,16 @@ export default () => {
             <EditableTitle
               value={node.title as string}
               width={node.isLeaf ? 177 : 201}
+              selected={selectedKeys.includes(node.key as string)}
               onChange={(newValue) => {
-                if (node.isLeaf) {
-                  setTreeData((d) => {
-                    const temp = [...d];
-                    temp.find((p) => {
-                      const found = p.children?.find((ele) => {
-                        ele.key === node.key;
-                      });
-                      if (found) {
-                        found.title = newValue;
-                        return true;
-                      }
-                      return false;
-                    });
-                    return temp;
-                  });
-                }
+                setTreeData((d) => {
+                  const temp = [...d];
+                  return findChild({ tree: temp, node }, () => ({
+                    self: (self) => {
+                      self.title = newValue;
+                    },
+                  }));
+                });
               }}
             />
           );
@@ -144,8 +167,6 @@ export default () => {
             info.dropPosition === 0
           ) {
             return false;
-          }
-          if ((!!info.dragNode.isLeaf === !!info.dropNode.isLeaf) === false) {
           }
           return true;
         }}
@@ -174,77 +195,28 @@ export default () => {
         onDrop={(info) => {
           draggingNode.current = null;
           const { dragNode, node: dropNode, dropPosition } = info;
-          if (!dragNode.isLeaf) {
-            // 拖拽文件夹
-            setTreeData((s) => {
-              const temp = [...s];
-              const dragItem = temp.splice(
-                temp.findIndex((ele) => ele.key === dragNode.key),
-                1
-              );
-              const dropIndex = s.findIndex((ele) => ele.key === dropNode.key);
-              if (dropPosition === -1) {
-                return temp
-                  .slice(0, dropIndex)
-                  .concat(dragItem)
-                  .concat(temp.slice(dropIndex));
-              } else {
-                return temp
-                  .slice(0, dropIndex + 1)
-                  .concat(dragItem)
-                  .concat(temp.slice(dropIndex + 1));
-              }
-            });
-          } else {
-            // 拖拽叶子节点
-            setTreeData((s) => {
-              const temp = [...s];
-              let dragDataNode: DataNode | undefined;
-              // delete at old position
-              temp.find((p) => {
-                const dragIndex = p.children?.findIndex(
-                  (ele) => ele.key === dragNode.key
-                );
-                if (dragIndex !== -1) {
-                  [dragDataNode] =
-                    p.children?.splice(
-                      p.children?.findIndex((ele) => ele.key === dragNode.key),
-                      1
-                    ) || [];
-                  return true;
+          setTreeData((s) => {
+            const temp = [...s];
+            let dragItem: DataNode;
+            findChild({ tree: temp, node: dragNode }, (i) => ({
+              parent: (parent) => {
+                [dragItem] = (parent.children || []).splice(i, 1);
+              },
+            }));
+            return findChild({ tree: temp, node: dropNode }, (i) => ({
+              parent: (parent) => {
+                if (dragNode.isLeaf && !dropNode.isLeaf) {
+                  ((parent.children || [])[i].children || []).unshift(dragItem);
+                } else {
+                  const breakPoint = i + (dropPosition === -1 ? 0 : 1);
+                  parent.children = parent
+                    .children!.slice(0, breakPoint)
+                    .concat(dragItem)
+                    .concat(parent.children!.slice(breakPoint));
                 }
-                return false;
-              });
-              if (!dragDataNode) {
-                throw new Error('error happens');
-              }
-              // insert at new position
-              if (dropNode.isLeaf) {
-                temp.find((p) => {
-                  const foundIndex =
-                    p.children?.findIndex((ele) => ele.key === dropNode.key) ??
-                    -1;
-                  if (foundIndex !== -1) {
-                    let delta = 0;
-                    if (dropPosition !== -1) {
-                      delta += 1;
-                    }
-                    const breakPoint = foundIndex + delta;
-                    p.children = (p.children || [])
-                      .slice(0, breakPoint)
-                      .concat(dragDataNode!)
-                      .concat((p.children || []).slice(breakPoint));
-                    return true;
-                  }
-                  return false;
-                });
-              } else {
-                const parent = temp.find((ele) => ele.key === dropNode.key);
-                parent?.children?.unshift(dragDataNode);
-              }
-              return temp;
-            });
-          }
+              },
+            }));
+          });
         }}
         onSelect={onSelect}
         onExpand={(keys) => {

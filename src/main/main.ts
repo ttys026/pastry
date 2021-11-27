@@ -5,7 +5,6 @@ import path from 'path';
 import {
   app,
   BrowserWindow,
-  ipcMain,
   Menu,
   Tray,
   screen,
@@ -13,6 +12,7 @@ import {
   systemPreferences
 } from 'electron';
 import robot from 'robotjs';
+import './controller';
 import getMenu from './menu';
 import { initClipboardListener } from './clipboardManager';
 import { resolveHtmlPath } from './util';
@@ -22,11 +22,6 @@ let mainWindow: BrowserWindow | null = null;
 let settingWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 
-ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
-});
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -86,8 +81,8 @@ const init = async () => {
     icon: getAssetPath('icon.png'),
     title: 'Pastry',
     acceptFirstMouse: true,
-    fullscreenable: true,
-    resizable: false,
+    fullscreenable: false,
+    resizable: true,
     simpleFullscreen: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

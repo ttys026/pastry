@@ -51,7 +51,6 @@ export default () => {
     { type: 'separator' },
     {
       label: 'dough',
-      sublabel: 'xaaa',
       submenu: [
         {
           label: 'slice',
