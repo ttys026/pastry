@@ -33,6 +33,8 @@ if (process.env.NODE_ENV === 'production') {
   sourceMapSupport.install();
 }
 
+require('electron-debug')();
+
 const init = async () => {
   const RESOURCES_PATH = app.isPackaged
     ? path.join(process.resourcesPath, 'assets')
@@ -79,8 +81,14 @@ const init = async () => {
     show: false,
     paintWhenInitiallyHidden: true,
     center: true,
+    width: 800,
+    height: 600,
     icon: getAssetPath('icon.png'),
-    frame: true,
+    title: 'Pastry',
+    acceptFirstMouse: true,
+    fullscreenable: true,
+    resizable: false,
+    simpleFullscreen: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
     },

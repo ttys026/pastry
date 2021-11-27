@@ -1,9 +1,19 @@
 // import { useState } from 'react';
 import Tree from './components/Tree';
 import Editor from './components/Editor';
+import Toolbar from './components/Toolbar';
 import './App.css';
 
 export default function App() {
-  // const [state] = useState('hello world');
-  return <div id='container'><Tree /><Editor /></div>;
+  return (
+    <div id="container">
+      <div id="toolbar">
+        <Toolbar />
+      </div>
+      <div id="content">
+        <Tree />
+        <Editor />
+      </div>
+    </div>
+  );
 }

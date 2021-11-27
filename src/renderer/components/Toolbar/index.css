@@ -1,0 +1,7 @@
+.header-container {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  border: 1px solid #e8e8e8;
+  padding: 0 8px;
+}

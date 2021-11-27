@@ -8,22 +8,38 @@ body,
 #root {
   margin: 0;
   padding: 0;
-  height: 600px;
+  height: 100%;
 }
 
 #container {
   margin: 0;
   padding: 0;
-  height: 600px;
+  height: 100%;
   display: flex;
+  flex-direction: column;
   flex: 1;
-  padding: 12px;
 }
 
-.file-tree {
-  /* height: 100%; */
-  /* padding: 24px; */
-  width: 356px;
+#toolbar {
+  background-color: #fafafa;
+}
+
+#content {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex: 1;
+}
+
+#tree-container {
+  flex-shrink: 0;
+  flex-basis: 256px;
+  width: 256px;
+  max-width: 256px;
+  min-width: 256px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  padding: 8px 2px;
 }
 
 .ant-tree.ant-tree-directory .ant-tree-treenode:hover::before {
