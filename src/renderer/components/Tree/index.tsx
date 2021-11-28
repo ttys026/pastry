@@ -3,60 +3,36 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DataNode } from 'rc-tree/lib/interface';
 import EditableTitle from './EditableTitle';
 import { findChild } from '../../utils';
+import { getTreeData, saveTreeData } from '../../services';
+
+const getNewNode = () => ({
+  isLeaf: true,
+  title: 'new scriptlet',
+  key: `file-${Date.now()}`,
+});
 
 const mock = [
   {
-    title: 'parent 0',
+    title: 'demo',
     // selectable: false,
     key: '0-0',
     children: [
-      { title: 'leaf 0-0', key: '0-0-0', isLeaf: true },
-      { title: 'leaf 0-1', key: '0-0-1', isLeaf: true },
-      { title: 'leaf 0-2', key: '0-0-2', isLeaf: true },
-      { title: 'leaf 0-3', key: '0-0-3', isLeaf: true },
+      { title: 'console.log', key: 'demo-0', isLeaf: true },
+      // { title: 'console.log', key: 'demo-1', isLeaf: true },
     ],
-  },
-  {
-    title: 'parent 1',
-    // selectable: false,
-    key: '0-1',
-    children: Array(40)
-      .fill('')
-      .map((_, index) => ({
-        title: `leaf 1-0-${index}`,
-        key: `0-1-${index}`,
-        isLeaf: true,
-      })),
-  },
-  {
-    title: 'parent 2',
-    // selectable: false,
-    key: '0-2',
-    children: [],
-  },
-  {
-    title: 'parent 3',
-    // selectable: false,
-    key: '0-3',
-    children: [],
   },
 ];
 
-const getTreeData = async () =>
-  await window.ipcRenderer.invoke('getData', 'tree');
+interface Props {
+  selectedKeys: string[];
+  setSelectedKeys: (ks: string[]) => void;
+}
 
-const saveTreeData = async (data: string) => {
-  await window.ipcRenderer.invoke('setData', { key: 'tree', data });
-};
-
-export default () => {
+export default (props: Props) => {
+  const { selectedKeys, setSelectedKeys } = props;
   const [key, setKey] = useState(0);
   const [treeData, _setTreeData] = useState<DataNode[]>([]);
-  const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
-  const [expandedKeys, setExpandedKeys] = useState<Array<string | number>>([
-    '0-0',
-    '0-1',
-  ]);
+  const [expandedKeys, setExpandedKeys] = useState<Array<string | number>>([]);
   const previousExpandedKeys = useRef<any>([]);
   const previousDragLeaf = useRef(true);
   const draggingNode = useRef<DataNode | null>(null);
@@ -64,14 +40,42 @@ export default () => {
     setSelectedKeys([info.node.key]);
   };
 
+  const selectedKeyRef = useRef(selectedKeys[0]);
+  selectedKeyRef.current = selectedKeys[0];
+
   useEffect(() => {
     getTreeData().then((res) => {
       if (res === undefined) {
         _setTreeData(mock);
+        setExpandedKeys(mock.map((ele) => ele.key));
       } else {
-        _setTreeData(JSON.parse(res || '[]'));
+        const data: DataNode[] = JSON.parse(res || '[]');
+        _setTreeData(data);
+        setExpandedKeys(data.map((ele) => ele.key));
       }
     });
+
+    const addFileListener = () => {
+      console.log('123, listener',);
+      setTreeData((s) => {
+        const temp = [...s];
+        return findChild(
+          { tree: temp, node: { key: selectedKeyRef.current } },
+          (i) => ({
+            parent: (parent) => {
+              // if (isFakeRoot(parent)) {
+                ((parent.children || [])[i].children || []).push(getNewNode());
+            },
+          })
+        );
+      });
+    };
+
+    window.addEventListener('new-file', addFileListener);
+
+    return () => {
+      window.removeEventListener('new-file', addFileListener);
+    };
   }, []);
 
   const setTreeData: typeof _setTreeData = useCallback((state) => {

@@ -20,6 +20,9 @@ export default () => {
         style={{ marginRight: 8 }}
         icon={<FileAddOutlined />}
         size="small"
+        onClick={() => {
+          window.dispatchEvent(new Event('new-file'));
+        }}
       >
         代码片段
       </Button>

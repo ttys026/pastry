@@ -1,5 +1,5 @@
 declare module "prismjs/*";
 
 interface Window {
-  ipcRenderer: any;
+  ipcRenderer: import('electron').IpcRenderer;
 }
