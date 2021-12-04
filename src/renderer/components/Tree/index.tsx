@@ -1,9 +1,8 @@
 import { Tree } from 'antd';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { DataNode } from 'rc-tree/lib/interface';
 import EditableTitle from './EditableTitle';
-import { findChild } from '../../utils';
-import { getTreeData, saveTreeData } from '../../services';
+import { findChild, isFakeRoot } from '../../utils';
 
 const getNewNode = () => ({
   isLeaf: true,
@@ -11,27 +10,22 @@ const getNewNode = () => ({
   key: `file-${Date.now()}`,
 });
 
-const mock = [
-  {
-    title: 'demo',
-    // selectable: false,
-    key: '0-0',
-    children: [
-      { title: 'console.log', key: 'demo-0', isLeaf: true },
-      // { title: 'console.log', key: 'demo-1', isLeaf: true },
-    ],
-  },
-];
+const getNewFolder = () => ({
+  children: [],
+  title: 'new folder',
+  key: `folder-${Date.now()}`,
+});
 
 interface Props {
+  treeData: DataNode[];
+  setTreeData: React.Dispatch<React.SetStateAction<DataNode[]>>;
   selectedKeys: string[];
   setSelectedKeys: (ks: string[]) => void;
 }
 
 export default (props: Props) => {
-  const { selectedKeys, setSelectedKeys } = props;
+  const { selectedKeys, setSelectedKeys, treeData, setTreeData: setTreeData } = props;
   const [key, setKey] = useState(0);
-  const [treeData, _setTreeData] = useState<DataNode[]>([]);
   const [expandedKeys, setExpandedKeys] = useState<Array<string | number>>([]);
   const previousExpandedKeys = useRef<any>([]);
   const previousDragLeaf = useRef(true);
@@ -44,27 +38,49 @@ export default (props: Props) => {
   selectedKeyRef.current = selectedKeys[0];
 
   useEffect(() => {
-    getTreeData().then((res) => {
-      if (res === undefined) {
-        _setTreeData(mock);
-        setExpandedKeys(mock.map((ele) => ele.key));
-      } else {
-        const data: DataNode[] = JSON.parse(res || '[]');
-        _setTreeData(data);
-        setExpandedKeys(data.map((ele) => ele.key));
-      }
-    });
 
     const addFileListener = () => {
-      console.log('123, listener',);
       setTreeData((s) => {
         const temp = [...s];
         return findChild(
-          { tree: temp, node: { key: selectedKeyRef.current } },
+          {
+            tree: temp,
+            node: {
+              key: selectedKeyRef.current,
+              isLeaf: temp.every((ele) => ele.key !== selectedKeyRef.current),
+            },
+          },
           (i) => ({
             parent: (parent) => {
-              // if (isFakeRoot(parent)) {
-                ((parent.children || [])[i].children || []).push(getNewNode());
+              if (isFakeRoot(parent)) {
+                parent.children[i].children.push(getNewNode());
+              } else {
+                parent.children.push(getNewNode());
+              }
+            },
+          })
+        );
+      });
+    };
+
+    const addFolderListener = () => {
+      setTreeData((s) => {
+        return [...s, getNewFolder()];
+      });
+    };
+
+    const removeItem = () => {
+      setTreeData((s) => {
+        const temp = [...s];
+        const isLeaf = temp.every((ele) => ele.key !== selectedKeyRef.current);
+        if (!isLeaf) {
+          alert('删文件夹');
+        }
+        return findChild(
+          { tree: temp, node: { key: selectedKeyRef.current, isLeaf } },
+          (i) => ({
+            parent: (parent) => {
+              parent.children.splice(i, 1);
             },
           })
         );
@@ -72,21 +88,16 @@ export default (props: Props) => {
     };
 
     window.addEventListener('new-file', addFileListener);
+    window.addEventListener('new-folder', addFolderListener);
+    window.addEventListener('delete', removeItem);
 
     return () => {
       window.removeEventListener('new-file', addFileListener);
+      window.removeEventListener('new-folder', addFolderListener);
+      window.removeEventListener('delete', removeItem);
     };
   }, []);
 
-  const setTreeData: typeof _setTreeData = useCallback((state) => {
-    const newStateGetter: any =
-      typeof state === 'function' ? state : () => state;
-    _setTreeData((s) => {
-      const newState = newStateGetter(s);
-      saveTreeData(JSON.stringify(newState));
-      return newState;
-    });
-  }, []);
 
   return (
     <div

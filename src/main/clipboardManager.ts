@@ -1,19 +1,76 @@
 import { clipboard } from 'electron';
+import { isUri } from './util';
+import type { NativeImage } from 'electron';
+
+type Data = {
+  text?: string;
+  html?: string;
+  image?: NativeImage;
+} | null;
+
+const isSameData = (a: Data, b: Data) => {
+  if (a.text && typeof a.text === 'string') {
+    return a.text === b.text && a.html === b.html;
+  }
+  if (a.image && b.image) {
+    return !a.image.getBitmap()?.compare(b.image?.getBitmap());
+  }
+  return false;
+};
 
 class ClipboardManager {
-  private history: string[] = [];
+  private history: Data[] = [];
   private limit = 30;
   private isLock = false;
+  private html = false;
+
+  constructor(props?: { html: boolean }) {
+    this.html = props?.html || false;
+  }
+
+  private readSpecificType = (type: string) => {
+    switch (true) {
+      case type.includes('/html') && this.html:
+        return { type: 'html', value: clipboard.readHTML() };
+      case type.includes('image/'):
+        const nativeImage = clipboard.readImage();
+        return { type: 'image', value: nativeImage };
+      default:
+        return { type: 'text', value: clipboard.readText() };
+    }
+  };
+
+  /**
+   * retrieve the current clipboard data
+   * @returns clipboard data
+   */
+  public retrieve(): Data {
+    const clipboardInfo = {};
+    const formats = clipboard.availableFormats();
+    if (!formats.length) {
+      return null;
+    }
+    // filter out custom type of clipboard data, eg: vscode-editor-data
+    formats
+      .filter((ele) => ele.includes('/'))
+      .forEach((format) => {
+        const { type, value } = this.readSpecificType(format);
+        clipboardInfo[type] = value;
+      });
+    return clipboardInfo;
+  }
 
   /**
    * add one item to the front
    * @param content
    */
-  public add(content: string) {
+  public add(content: Data) {
     if (this.isLock) {
       return;
     }
-    const foundIndex = this.history.findIndex((ele) => ele === content);
+    const foundIndex = this.history.findIndex((ele) =>
+      isSameData(ele, content)
+    );
     if (foundIndex !== -1) {
       this.use(foundIndex);
       return;
@@ -30,6 +87,25 @@ class ClipboardManager {
    */
   public getHistories() {
     return this.history;
+  }
+
+  /**
+   * get history of different types
+   * @returns
+   */
+  public getGroupedHistories(): { text: Data[]; image: Data[], link: Data[] } {
+    const history = { text: [], image: [], link: [] };
+    for (let i = 0; i < this.history.length; i++) {
+      const item = this.history[i];
+      if (item.image) {
+        history.image.push(item);
+      } else if (isUri(item.text)) {
+        history.link.push(item);
+      } else {
+        history.text.push(item);
+      }
+    }
+    return history;
   }
 
   /**
@@ -56,7 +132,7 @@ class ClipboardManager {
    * refresh the stack
    */
   public refresh() {
-    const currentClipboard = clipboard.readText();
+    const currentClipboard = this.retrieve();
     if (currentClipboard) {
       this.add(currentClipboard);
     }
@@ -82,9 +158,9 @@ export const manager = new ClipboardManager();
 
 export const initClipboardListener = () => {
   const listener = () => {
-    const currentClipboard = clipboard.readText();
-    if (currentClipboard) {
-      manager.add(currentClipboard);
+    const data = manager.retrieve();
+    if (data) {
+      manager.add(data);
     }
   };
   const timer = setInterval(listener, 750);

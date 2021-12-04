@@ -1,62 +1,80 @@
-import { useEffect, useState } from 'react';
-import Editor from 'react-simple-code-editor';
-import { highlight, languages } from 'prismjs/components/prism-core';
-import 'prismjs/components/prism-clike';
-import 'prismjs/components/prism-javascript';
-import './syntax.css';
-import { getContent, setContent } from '../../services';
+import { useEffect, useRef } from 'react';
+import { setContent } from '../../services';
+import { js, JSBeautifyOptions } from 'js-beautify';
+import * as monaco from 'monaco-editor';
+import './loader';
+import { useKeyPress } from 'ahooks';
 
 interface Props {
   selectedKey?: string;
+  initialValue: string;
+}
+
+const formatOption: JSBeautifyOptions = {
+  space_in_paren: false,
+  indent_empty_lines: false,
+  end_with_newline: true,
+  max_preserve_newlines: 2,
+  preserve_newlines: true,
+  indent_size: 2
 }
 
 export default function App(props: Props) {
-  const [code, _setCode] = useState(`export default (selection) => {
-  return \`console.log("\${Date.now()}", );\`
-}`);
-
-  const setCode = (c: string) => {
-    _setCode(c);
-    if (props.selectedKey) {
-      setContent(props.selectedKey, c);
-    }
-  };
+  const ref = useRef<HTMLDivElement>(null);
+  const editor = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  useKeyPress(['meta.s'], () => {
+    console.log('event');
+    window.dispatchEvent(new Event('format'))
+  })
+  const selectedKeyRef = useRef(props.selectedKey);
+  selectedKeyRef.current = props.selectedKey;
 
   useEffect(() => {
-    if (!props.selectedKey) {
-      // no shit
-    } else {
-      getContent(props.selectedKey).then((res) => {
-        if (res === undefined) {
-          if (props.selectedKey === 'demo-0') {
-            _setCode(`() => \`console.log("pastry_\${Date.now()}", )\``);
-            return;
-          }
-        } else {
-          _setCode(res);
-        }
+    if (ref.current) {
+      editor.current = monaco.editor.create(ref.current, {
+        value: '',
+        cursorWidth: 1,
+        // language: 'typescript',
+        language: 'javascript',
+        automaticLayout: true,
+        tabSize: 2,
+        minimap: {
+          enabled: false,
+        },
       });
     }
-  }, [props.selectedKey]);
 
-  return (
-    <div id="editor">
-      <Editor
-        value={code || ''}
-        onValueChange={setCode}
-        placeholder="Please enter your snippet..."
-        highlight={(code) => highlight(code, languages.js)}
-        padding={10}
-        style={{
-          fontFamily: '"Fira code", "Fira Mono", monospace',
-          fontSize: 14,
-          height: '100%',
-          outline: 'none',
-          border: '1px solid #e8e8e8',
-          borderTop: 0,
-          boxShadow: 'none',
-        }}
-      />
-    </div>
-  );
+    const removeListener = editor.current
+      ?.getModel()
+      ?.onDidChangeContent(() => {
+        const value = editor.current?.getValue() || '';
+        if (selectedKeyRef.current) {
+          setContent(selectedKeyRef.current, value);
+        }
+      });
+
+    const format = () => {
+      // editor.current?.getAction('editor.action.formatDocument').run();
+      console.log('format')
+      const value = editor.current?.getValue() || '';
+      const formated = js(value, formatOption);
+      console.log('formated', formated);
+      editor.current?.setValue(formated);
+      setContent(selectedKeyRef.current, formated);
+    };
+
+    window.addEventListener('format', format);
+
+    return () => {
+      window.removeEventListener('format', format);
+      removeListener?.dispose();
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log('set initial value', props.initialValue);
+    editor.current?.setValue(props.initialValue || '');
+  }, [props.initialValue, props.selectedKey]);
+
+  return <div ref={ref} id="editor" />;
 }

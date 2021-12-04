@@ -9,19 +9,16 @@ import {
   Tray,
   screen,
   globalShortcut,
-  systemPreferences
+  // systemPreferences,
 } from 'electron';
-import robot from 'robotjs';
 import './controller';
 import getMenu from './menu';
 import { initClipboardListener } from './clipboardManager';
-import { resolveHtmlPath } from './util';
-
+import { resolveHtmlPath, keepAlive } from './util';
 
 let mainWindow: BrowserWindow | null = null;
 let settingWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
-
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -55,7 +52,7 @@ const init = async () => {
       },
     },
   ]);
-  tray.setToolTip('This is my application.');
+  tray.setToolTip('Pastry');
   tray.setContextMenu(contextMenu);
   tray.setPressedImage(iconActive);
 
@@ -78,6 +75,8 @@ const init = async () => {
     center: true,
     width: 800,
     height: 600,
+    minWidth: 800,
+    minHeight: 600,
     icon: getAssetPath('icon.png'),
     title: 'Pastry',
     acceptFirstMouse: true,
@@ -90,10 +89,12 @@ const init = async () => {
   });
 
   const cancelClipboardListener = initClipboardListener();
+  const killSystemEvent = keepAlive();
 
   app.on('will-quit', () => {
     globalShortcut.unregisterAll();
     cancelClipboardListener();
+    killSystemEvent();
   });
 
   settingWindow.loadURL(resolveHtmlPath('index.html'));
@@ -135,23 +136,27 @@ const init = async () => {
     });
   });
 
+  Array(10).fill('').forEach((_, index) => {
+    globalShortcut.register(`Command+${index}`, () => {
+      console.log('exec-script', index)
+      // copy
+    });
+  })
+
   if (!ret) {
     console.log('registration failed');
   }
 };
 
-const showSystemAccessibilityPrompt = () => {
-  systemPreferences.isTrustedAccessibilityClient(true);
-  const cursor = screen.getCursorScreenPoint();
-  robot.moveMouse(cursor.x, cursor.y);
-  // robot.typeString('');
-  // clipboard.writeText(clipboard.readText());
-}
+// const showSystemAccessibilityPrompt = () => {
+//   systemPreferences.isTrustedAccessibilityClient(true);
+// };
+
 
 app
   .whenReady()
   .then(() => {
     init();
-    showSystemAccessibilityPrompt();
+    // showSystemAccessibilityPrompt();
   })
   .catch(console.log);

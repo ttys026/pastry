@@ -34,3 +34,7 @@ export const findChild = (
   }
   return fakeRoot.children;
 };
+
+export const isFakeRoot = (node: DataNode) => {
+  return node.key === 'ROOT';
+}

@@ -11,7 +11,7 @@ export default () => {
   const treeContainer = useRef<HTMLDivElement | null>(null);
 
   useLayoutEffect(() => {
-    treeContainer.current = document.querySelector('.file-tree');
+    treeContainer.current = document.querySelector('#tree-container');
   }, []);
 
   return (
@@ -29,6 +29,7 @@ export default () => {
       <Button
         style={{ marginRight: 8 }}
         onClick={() => {
+          window.dispatchEvent(new Event('new-folder'));
           treeContainer.current!.scrollTop = 999999;
         }}
         icon={<FolderAddOutlined />}
@@ -36,7 +37,13 @@ export default () => {
       >
         文件夹
       </Button>
-      <Button icon={<DeleteOutlined />} size="small">
+      <Button
+        onClick={() => {
+          window.dispatchEvent(new Event('delete'));
+        }}
+        icon={<DeleteOutlined />}
+        size="small"
+      >
         删除
       </Button>
     </div>
