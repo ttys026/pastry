@@ -29,14 +29,6 @@ if (process.env.NODE_ENV === 'production') {
 require('electron-debug')();
 
 const init = async () => {
-  // const RESOURCES_PATH = app.isPackaged
-  //   ? path.join(process.resourcesPath, 'assets')
-  //   : path.join(__dirname, '../../assets');
-
-  // const getAssetPath = (...paths: string[]): string => {
-  //   return path.join(RESOURCES_PATH, ...paths);
-  // };
-
   const iconActive = getAssetPath('icons/24x24.png');
   const icon = getAssetPath('icons/24x24-0.7.png');
 
@@ -144,7 +136,7 @@ const init = async () => {
     .forEach((_, index) => {
       globalShortcut.register(`Command+${index}`, () => {
         console.log('key press', index);
-        const shortcuts = safeParse(get('shortcut'));
+        const shortcuts = safeParse(get('shortcut') || '{}', {});
         const key = Object.entries(shortcuts).find(([, v]) => {
           return v === index;
         })?.[0];
