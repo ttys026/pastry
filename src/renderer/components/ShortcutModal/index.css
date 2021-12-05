@@ -1,0 +1,26 @@
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.row > .label {
+  width: 80px;
+  flex-basis: 80px;
+  min-width: 80px;
+  max-width: 80px;
+}
+
+.row > .treeSelect {
+  flex: 1;
+}
+
+.treeSelect .ant-select-tree-title {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  white-space: pre;
+  word-break: keep-all;
+}

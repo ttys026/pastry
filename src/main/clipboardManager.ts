@@ -1,11 +1,12 @@
-import { clipboard } from 'electron';
-import { isUri } from './util';
-import type { NativeImage } from 'electron';
+import { clipboard, nativeImage, NativeImage } from 'electron';
+import { isUri, safeParse } from './util';
+import { get, set } from './store';
 
 type Data = {
   text?: string;
   html?: string;
   image?: NativeImage;
+  dataUrl?: string;
 } | null;
 
 const isSameData = (a: Data, b: Data) => {
@@ -13,7 +14,7 @@ const isSameData = (a: Data, b: Data) => {
     return a.text === b.text && a.html === b.html;
   }
   if (a.image && b.image) {
-    return !a.image.getBitmap()?.compare(b.image?.getBitmap());
+    return a.image.getBitmap()?.equals(b.image?.getBitmap());
   }
   return false;
 };
@@ -24,9 +25,31 @@ class ClipboardManager {
   private isLock = false;
   private html = false;
 
-  constructor(props?: { html: boolean }) {
+  constructor(props?: { html?: boolean; history?: Data[] }) {
     this.html = props?.html || false;
+    this.history = (props.history || []).map(ele => {
+      if(ele.dataUrl) {
+        return {
+          ...ele,
+          image: nativeImage.createFromDataURL(ele.dataUrl)
+        }
+      }
+      return ele;
+    });
   }
+
+  private persist = () => {
+     const storeData = this.history.map(ele => {
+      if(!ele.image) {
+        return ele;
+      }
+      return {
+        ...ele,
+        dataUrl: ele.image.toDataURL(),
+      }
+    })
+    set('history', JSON.stringify(storeData));
+  };
 
   private readSpecificType = (type: string) => {
     switch (true) {
@@ -73,12 +96,14 @@ class ClipboardManager {
     );
     if (foundIndex !== -1) {
       this.use(foundIndex);
+      this.persist();
       return;
     }
     const length = this.history.unshift(content);
     if (length > this.limit) {
       this.history = this.history.slice(0, this.limit);
     }
+    this.persist();
   }
 
   /**
@@ -93,7 +118,7 @@ class ClipboardManager {
    * get history of different types
    * @returns
    */
-  public getGroupedHistories(): { text: Data[]; image: Data[], link: Data[] } {
+  public getGroupedHistories(): { text: Data[]; image: Data[]; link: Data[] } {
     const history = { text: [], image: [], link: [] };
     for (let i = 0; i < this.history.length; i++) {
       const item = this.history[i];
@@ -143,6 +168,7 @@ class ClipboardManager {
    */
   public clear() {
     this.history = [];
+    set('history', '[]');
   }
 
   public lock() {
@@ -154,7 +180,9 @@ class ClipboardManager {
   }
 }
 
-export const manager = new ClipboardManager();
+export const manager = new ClipboardManager({
+  history: safeParse(get('history') || '', []),
+});
 
 export const initClipboardListener = () => {
   const listener = () => {

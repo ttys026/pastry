@@ -7,6 +7,7 @@ interface Props {
   onChange: (v: string) => void;
   width: number;
   selected: boolean;
+  shortcut?: number;
 }
 
 const SingleLineInput = ({
@@ -37,10 +38,12 @@ const SingleLineText = ({
   value,
   enterEdit,
   width,
+  shortcut,
 }: {
   value: string;
   enterEdit: () => void;
   width: number;
+  shortcut?: number;
 }) => {
   useKeyPress('Enter', () => {
     if (document.activeElement?.tagName !== 'TEXTAREA') {
@@ -60,6 +63,9 @@ const SingleLineText = ({
       }}
       onDoubleClick={enterEdit}
     >
+      {Number.isInteger(shortcut) && (
+        <span>+&nbsp;{shortcut}:&nbsp;</span>
+      )}
       {value}
     </span>
   );
@@ -71,8 +77,10 @@ export default (props: Props) => {
   return mode === 'display' ? (
     <>
       {props.selected ? (
+        // selected 组件，监听了回车事件
         <SingleLineText
           value={value}
+          shortcut={props.shortcut}
           enterEdit={() =>
             setMode((v) => (v === 'display' ? 'edit' : 'display'))
           }
@@ -80,7 +88,6 @@ export default (props: Props) => {
         />
       ) : (
         <span
-          title=""
           style={{
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -93,6 +100,9 @@ export default (props: Props) => {
             setMode((v) => (v === 'display' ? 'edit' : 'display'))
           }
         >
+          {Number.isInteger(props.shortcut) && (
+            <span style={{ color: 'rgba(0,0,0,0.45)'}}>+&nbsp;{props.shortcut}:&nbsp;</span>
+          )}
           {value}
         </span>
       )}

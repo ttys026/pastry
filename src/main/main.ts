@@ -12,9 +12,10 @@ import {
   // systemPreferences,
 } from 'electron';
 import './controller';
-import getMenu from './menu';
-import { initClipboardListener } from './clipboardManager';
-import { resolveHtmlPath, keepAlive } from './util';
+import getMenu, { execScript } from './menu';
+import { initClipboardListener, manager } from './clipboardManager';
+import { resolveHtmlPath, keepAlive, getAssetPath, safeParse } from './util';
+import { get } from './store';
 
 let mainWindow: BrowserWindow | null = null;
 let settingWindow: BrowserWindow | null = null;
@@ -28,13 +29,13 @@ if (process.env.NODE_ENV === 'production') {
 require('electron-debug')();
 
 const init = async () => {
-  const RESOURCES_PATH = app.isPackaged
-    ? path.join(process.resourcesPath, 'assets')
-    : path.join(__dirname, '../../assets');
+  // const RESOURCES_PATH = app.isPackaged
+  //   ? path.join(process.resourcesPath, 'assets')
+  //   : path.join(__dirname, '../../assets');
 
-  const getAssetPath = (...paths: string[]): string => {
-    return path.join(RESOURCES_PATH, ...paths);
-  };
+  // const getAssetPath = (...paths: string[]): string => {
+  //   return path.join(RESOURCES_PATH, ...paths);
+  // };
 
   const iconActive = getAssetPath('icons/24x24.png');
   const icon = getAssetPath('icons/24x24-0.7.png');
@@ -43,6 +44,8 @@ const init = async () => {
 
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Make Doughs', click: () => settingWindow?.show() },
+    { type: 'separator' },
+    { label: 'Clear Histories', click: () => manager.clear() },
     { type: 'separator' },
     {
       label: 'Quit Pastry',
@@ -136,12 +139,22 @@ const init = async () => {
     });
   });
 
-  Array(10).fill('').forEach((_, index) => {
-    globalShortcut.register(`Command+${index}`, () => {
-      console.log('exec-script', index)
-      // copy
+  Array(10)
+    .fill('')
+    .forEach((_, index) => {
+      globalShortcut.register(`Command+${index}`, () => {
+        console.log('key press', index);
+        const shortcuts = safeParse(get('shortcut'));
+        const key = Object.entries(shortcuts).find(([, v]) => {
+          return v === index;
+        })?.[0];
+        if (key) {
+          execScript(key);
+        }
+        console.log('exec-script', index, key);
+        // copy
+      });
     });
-  })
 
   if (!ret) {
     console.log('registration failed');
@@ -151,7 +164,6 @@ const init = async () => {
 // const showSystemAccessibilityPrompt = () => {
 //   systemPreferences.isTrustedAccessibilityClient(true);
 // };
-
 
 app
   .whenReady()

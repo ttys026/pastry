@@ -2,7 +2,7 @@
 import { URL } from 'url';
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 import { createServer } from 'net';
-// import { powerMonitor } from 'electron';
+import { app, powerMonitor } from 'electron';
 import path from 'path';
 
 class Deferred<T> {
@@ -30,22 +30,40 @@ const guard = () => {
     '/System/Library/CoreServices/System Events.app/Contents/MacOS/System Events'
   );
   systemEvent.on('exit', () => {
-    console.error('system events quit');
+    console.error('system events quit', Date.now());
     guard();
-    console.error('system events back again');
+    console.error('system events back again', Date.now());
   });
 };
 
+const osascript = spawn('osascript', ['-i'], {
+  detached: false,
+  stdio: ['pipe', 'ignore', 'ignore'],
+  shell: false,
+});
+
 export const keepAlive = () => {
   guard();
-  return systemEvent?.kill || (() => {});
+  const activate = () => {
+    console.log('try to renew');
+    osascript.stdin.write(
+      'tell application "System Events" to do shell script ""\n\n'
+    );
+  };
+  activate();
+  powerMonitor.on('unlock-screen', activate);
+  const timer = setInterval(activate, 280000);
+  return () => {
+    powerMonitor.off('unlock-screen', activate);
+    clearInterval(timer);
+    systemEvent?.kill();
+  };
 };
 
 let port = 0;
 // osascript stdout does not flushed, therefore we create a tcp server to talk with osascript
 const server = createServer((socket) => {
   socket.on('data', (chunk) => {
-    console.log('ondata');
     const task = chunk.toString('utf8').trim();
     const lock = lockMap.get(task);
     console.log('work finished: ', task);
@@ -58,34 +76,15 @@ const server = createServer((socket) => {
   port = server.address().port;
 });
 
-const osascript = spawn('osascript', ['-i'], {
-  detached: false,
-  stdio: ['pipe', 'overlapped', 'pipe'],
-  shell: false,
-});
-
 const ensureAppleScriptExecuted = async (message: string) => {
   const timer = new Promise<void>((_, rej) => setTimeout(rej, 1000));
   const lock = new Deferred<void>();
   lockMap.set(message, lock);
   osascript.stdin.write(
-    `do shell script "curl telnet://127.0.0.1:${port} <<< ${message}"\n\n`,
-    () => console.log('telnet send')
+    `do shell script "curl telnet://127.0.0.1:${port} <<< ${message}"\n\n`
   );
-  console.log('11111', lockMap);
   return Promise.race([timer, lock.promise]);
 };
-
-export const activate = () => {
-  // osascript.stdin.write(
-  //   'tell application "System Events" to do shell script ""\n\n'
-  // );
-};
-
-process.stdout.setDefaultEncoding('utf8');
-process.stdout.on('data', () => {
-  console.log('new data');
-});
 
 export const copy = async () => {
   return new Promise<void>((res) => {
@@ -170,4 +169,20 @@ export const isUri = (value: string) => {
   if (!/^[a-z][a-z0-9\+\-\.]*$/.test(scheme.toLowerCase())) return false;
 
   return true;
+};
+
+export const safeParse = <T>(str: string, initialValue?: T) => {
+  try {
+    return JSON.parse(str) as T;
+  } catch (e) {
+    return initialValue;
+  }
+};
+
+const RESOURCES_PATH = app.isPackaged
+  ? path.join(process.resourcesPath, 'assets')
+  : path.join(__dirname, '../../assets');
+
+export const getAssetPath = (...paths: string[]): string => {
+  return path.join(RESOURCES_PATH, ...paths);
 };

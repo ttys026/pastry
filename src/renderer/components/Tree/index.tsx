@@ -1,8 +1,10 @@
 import { Tree } from 'antd';
+import { MacCommandOutlined, FileOutlined } from '@ant-design/icons';
 import { useEffect, useRef, useState } from 'react';
 import type { DataNode } from 'rc-tree/lib/interface';
 import EditableTitle from './EditableTitle';
 import { findChild, isFakeRoot } from '../../utils';
+import ShortcutModal from '../ShortcutModal';
 
 const getNewNode = () => ({
   isLeaf: true,
@@ -21,12 +23,22 @@ interface Props {
   setTreeData: React.Dispatch<React.SetStateAction<DataNode[]>>;
   selectedKeys: string[];
   setSelectedKeys: (ks: string[]) => void;
+  shortcuts: Record<string, number>;
+  setShortcuts: React.Dispatch<React.SetStateAction<Record<string, number>>>;
 }
 
 export default (props: Props) => {
-  const { selectedKeys, setSelectedKeys, treeData, setTreeData: setTreeData } = props;
+  const {
+    selectedKeys,
+    setSelectedKeys,
+    treeData,
+    setTreeData: setTreeData,
+    shortcuts = {},
+    setShortcuts
+  } = props;
   const [key, setKey] = useState(0);
   const [expandedKeys, setExpandedKeys] = useState<Array<string | number>>([]);
+  const [shortcutVisible, setShortcutVisible] = useState<boolean>(false);
   const previousExpandedKeys = useRef<any>([]);
   const previousDragLeaf = useRef(true);
   const draggingNode = useRef<DataNode | null>(null);
@@ -38,7 +50,6 @@ export default (props: Props) => {
   selectedKeyRef.current = selectedKeys[0];
 
   useEffect(() => {
-
     const addFileListener = () => {
       setTreeData((s) => {
         const temp = [...s];
@@ -52,10 +63,12 @@ export default (props: Props) => {
           },
           (i) => ({
             parent: (parent) => {
+              const newFile = getNewNode();
+              setSelectedKeys([newFile.key]);
               if (isFakeRoot(parent)) {
-                parent.children[i].children.push(getNewNode());
+                parent.children[i].children.push(newFile);
               } else {
-                parent.children.push(getNewNode());
+                parent.children.push(newFile);
               }
             },
           })
@@ -65,13 +78,17 @@ export default (props: Props) => {
 
     const addFolderListener = () => {
       setTreeData((s) => {
-        return [...s, getNewFolder()];
+        const newFolder = getNewFolder();
+        setSelectedKeys([newFolder.key]);
+        setExpandedKeys((k) => [...k, newFolder.key]);
+        return [...s, newFolder];
       });
     };
 
     const removeItem = () => {
       setTreeData((s) => {
         const temp = [...s];
+        setSelectedKeys([]);
         const isLeaf = temp.every((ele) => ele.key !== selectedKeyRef.current);
         if (!isLeaf) {
           alert('删文件夹');
@@ -87,17 +104,23 @@ export default (props: Props) => {
       });
     };
 
+    const setShortcut = () => {
+      setShortcutVisible(true);
+      // 123
+    };
+
     window.addEventListener('new-file', addFileListener);
     window.addEventListener('new-folder', addFolderListener);
     window.addEventListener('delete', removeItem);
+    window.addEventListener('shortcut', setShortcut);
 
     return () => {
       window.removeEventListener('new-file', addFileListener);
       window.removeEventListener('new-folder', addFolderListener);
       window.removeEventListener('delete', removeItem);
+      window.removeEventListener('shortcut', setShortcut);
     };
   }, []);
-
 
   return (
     <div
@@ -136,18 +159,29 @@ export default (props: Props) => {
       }}
       id="tree-container"
     >
+      {shortcutVisible && (
+        <ShortcutModal
+          onCancel={() => setShortcutVisible(false)}
+          setShortcuts={setShortcuts}
+          onSave={() => {}}
+          treeData={treeData}
+          shortcuts={shortcuts}
+        />
+      )}
       <Tree.DirectoryTree
         key={key}
         expandAction={false}
         multiple={false}
         selectedKeys={selectedKeys}
+        icon={(node) => Number.isInteger(shortcuts[node.eventKey]) ? <MacCommandOutlined /> : <FileOutlined />}
         expandedKeys={expandedKeys}
         draggable={{ icon: false }}
         titleRender={(node) => {
           return (
             <EditableTitle
               value={node.title as string}
-              width={node.isLeaf ? 177 : 201}
+              shortcut={shortcuts[node.key]}
+              width={node.isLeaf ? 180 : 204}
               selected={selectedKeys.includes(node.key as string)}
               onChange={(newValue) => {
                 setTreeData((d) => {

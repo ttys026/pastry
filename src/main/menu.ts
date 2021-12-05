@@ -1,10 +1,10 @@
-import { Menu, clipboard, nativeImage } from 'electron';
+import { Menu, clipboard } from 'electron';
 import { manager } from './clipboardManager';
 import { get } from './store';
 import nanoid from 'nanoid';
 import lodash from 'lodash';
 import axios from 'axios';
-import { copy, paste } from './util';
+import { copy, paste, safeParse, getAssetPath } from './util';
 
 const injectedVariables = {
   // useful libs
@@ -16,6 +16,10 @@ const injectedVariables = {
   global: null,
   require: new ReferenceError('require is not defined'),
   process: new ReferenceError('process is not defined'),
+};
+
+const ellipsis = (content: string) => {
+  return content.length > 20 ? content.slice(0, 19) + '...' : content;
 };
 
 const run = (content: string) =>
@@ -43,7 +47,6 @@ export const execScript = async (key: string) => {
     const res = await run(content)()(selection);
     console.log('exec result', res);
     clipboard.writeText(res);
-    console.log('clipboard', clipboard.readText());
     paste();
     manager.unlock();
   } catch (e) {
@@ -53,10 +56,10 @@ export const execScript = async (key: string) => {
     clipboard.write(previous);
     manager.unlock();
   }
-}
+};
 
 export default () => {
-  const treeData: Item[] = JSON.parse(get('tree') || '[]');
+  const treeData: Item[] = safeParse(get('tree') || '[]', []);
   // flush stack
 
   const { text, image, link } = manager.getGroupedHistories();
@@ -64,23 +67,30 @@ export default () => {
   manager.refresh();
 
   const menu: any = [
+    ...(!image.length && !text.length && !link.length
+      ? [
+          {
+            enabled: false,
+            label: '(空)',
+          },
+        ]
+      : [
+          {
+            label: '粘贴最新',
+            icon: getAssetPath('menuItems/paste.png'),
+            click: paste,
+          },
+          { type: 'separator' },
+        ]),
     { type: 'normal', label: '历史', enabled: false },
-    !image.length && !text.length && !link.length
-    ? {
-        enabled: false,
-        label: '(空)',
-      }
-    : { label: '粘贴最新', click: paste },
     text.length && {
       label: 'Texts',
       type: 'submenu',
-      icon: nativeImage.createFromPath('/Users/li/Downloads/杯子蛋糕.png'),
+      icon: getAssetPath('menuItems/text.png'),
       submenu: text.map((ele, index) => {
         const content = ele.text.trim();
         return {
-          label: `${index + 1}. ${
-            content.length > 20 ? content.slice(0, 19) + '...' : content
-          }`,
+          label: `${index + 1}. ${ellipsis(content)}`,
           click: () => {
             clipboard.write(ele);
             paste();
@@ -92,13 +102,11 @@ export default () => {
     link.length && {
       label: 'Links',
       type: 'submenu',
-      icon: nativeImage.createFromPath('/Users/li/Downloads/杯子蛋糕.png'),
+      icon: getAssetPath('menuItems/link.png'),
       submenu: link.map((ele, index) => {
         const content = ele.text.trim();
         return {
-          label: `${index + 1}. ${
-            content.length > 20 ? content.slice(0, 19) + '...' : content
-          }`,
+          label: `${index + 1}. ${ellipsis(content)}`,
           click: () => {
             clipboard.write(ele);
             paste();
@@ -110,8 +118,8 @@ export default () => {
     image.length && {
       label: 'Images',
       type: 'submenu',
-      icon: nativeImage.createFromPath('/Users/li/Downloads/杯子蛋糕.png'),
-      submenu: image.map((ele, index) => {
+      icon: getAssetPath('menuItems/image.png'),
+      submenu: image.map((ele) => {
         const content = ele.image;
         const { width, height } = content.getSize();
         const isVertical = width < height;
@@ -121,7 +129,7 @@ export default () => {
         const cropParams = { height: dimension, width: dimension, x, y };
 
         return {
-          label: '',
+          label: undefined,
           icon: content.crop(cropParams).resize({ width: 80 }),
           click: () => {
             clipboard.write(ele);
@@ -142,9 +150,9 @@ export default () => {
     { type: 'separator' },
     { type: 'normal', label: '脚本', enabled: false },
     ...treeData.map((folder) => ({
-      label: folder.title,
+      label: ellipsis(folder.title),
       submenu: folder.children.map((file) => ({
-        label: file.title,
+        label: ellipsis(file.title),
         click: () => execScript(file.key),
       })),
     })),

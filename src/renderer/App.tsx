@@ -4,7 +4,7 @@ import Toolbar from './components/Toolbar';
 import './App.css';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Empty from './components/Empty';
-import { getContent, getTreeData, saveTreeData } from './services';
+import { getContent, getTreeData, saveTreeData, setContent } from './services';
 import { Spin } from 'antd';
 
 const mock = [
@@ -24,6 +24,7 @@ export default function App() {
     initialValue: '',
   });
   const [treeData, _setTreeData] = useState([]);
+  const [shortcuts, _setShortcuts] = useState<Record<string, number>>({});
   const [treeDataLoading, setTreeDataLoading] = useState(true);
 
   const isLeaf = useMemo(() => {
@@ -31,10 +32,17 @@ export default function App() {
   }, [selectedKey, treeData]);
 
   useEffect(() => {
-    getTreeData().then((res) => {
-      const data = res ? JSON.parse(res) : mock;
-      setTreeData(data);
-      setTreeDataLoading(false);
+    getTreeData().then(async (res) => {
+      try {
+        const shortcut = JSON.parse((await getContent('shortcut')) || '{}');
+        _setShortcuts(shortcut);
+        const data = res ? JSON.parse(res) : mock;
+        setTreeData(data);
+        setTreeDataLoading(false);
+      } catch (e) {
+        setTreeData([]);
+        setTreeDataLoading(false);
+      }
     });
   }, []);
 
@@ -48,10 +56,20 @@ export default function App() {
     });
   }, []);
 
+  const setShortcuts: typeof _setShortcuts = useCallback((state) => {
+    const newStateGetter: any =
+      typeof state === 'function' ? state : () => state;
+    _setShortcuts((s) => {
+      const newState = newStateGetter(s);
+      setContent('shortcut', JSON.stringify(newState));
+      console.log('new state', newState);
+      return newState;
+    });
+  }, []);
+
   useEffect(() => {
     setEditorState({ loading: true, initialValue: '', selectedKey: '' });
     getContent(selectedKey).then((res) => {
-      console.log('11111', res);
       setEditorState({ loading: false, initialValue: res, selectedKey });
     });
   }, [selectedKey]);
@@ -63,6 +81,8 @@ export default function App() {
       </div>
       <div id="content">
         <Tree
+          shortcuts={shortcuts}
+          setShortcuts={setShortcuts}
           treeData={treeData}
           setTreeData={setTreeData}
           selectedKeys={selectedKeys}

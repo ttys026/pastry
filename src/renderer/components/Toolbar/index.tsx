@@ -2,6 +2,7 @@ import {
   FolderAddOutlined,
   FileAddOutlined,
   DeleteOutlined,
+  MacCommandOutlined,
 } from '@ant-design/icons';
 import { Button } from 'antd';
 import { useLayoutEffect, useRef } from 'react';
@@ -36,6 +37,16 @@ export default () => {
         size="small"
       >
         文件夹
+      </Button>
+      <Button
+        style={{ marginRight: 8 }}
+        onClick={() => {
+          window.dispatchEvent(new Event('shortcut'));
+        }}
+        icon={<MacCommandOutlined />}
+        size="small"
+      >
+        快捷键
       </Button>
       <Button
         onClick={() => {
