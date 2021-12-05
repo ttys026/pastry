@@ -14,5 +14,8 @@
     "link-modules": "node -r ts-node/register ../../.erb/scripts/link-modules.ts",
     "postinstall": "npm run electron-rebuild && npm run link-modules"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@nut-tree/nut-js": "1.7.1-next.20211203210108"
+  }
 }

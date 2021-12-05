@@ -9,12 +9,12 @@ import {
   Tray,
   screen,
   globalShortcut,
-  // systemPreferences,
+  systemPreferences,
 } from 'electron';
 import './controller';
 import getMenu, { execScript } from './menu';
 import { initClipboardListener, manager } from './clipboardManager';
-import { resolveHtmlPath, keepAlive, getAssetPath, safeParse } from './util';
+import { resolveHtmlPath, getAssetPath, safeParse } from './util';
 import { get } from './store';
 
 let mainWindow: BrowserWindow | null = null;
@@ -84,12 +84,10 @@ const init = async () => {
   });
 
   const cancelClipboardListener = initClipboardListener();
-  const killSystemEvent = keepAlive();
 
   app.on('will-quit', () => {
     globalShortcut.unregisterAll();
     cancelClipboardListener();
-    killSystemEvent();
   });
 
   settingWindow.loadURL(resolveHtmlPath('index.html'));
@@ -153,14 +151,17 @@ const init = async () => {
   }
 };
 
-// const showSystemAccessibilityPrompt = () => {
-//   systemPreferences.isTrustedAccessibilityClient(true);
-// };
+const showSystemAccessibilityPrompt = () => {
+  const isTrusted = systemPreferences.isTrustedAccessibilityClient(false);
+  if (!isTrusted) {
+    systemPreferences.isTrustedAccessibilityClient(true);
+  }
+};
 
 app
   .whenReady()
   .then(() => {
     init();
-    // showSystemAccessibilityPrompt();
+    showSystemAccessibilityPrompt();
   })
   .catch(console.log);

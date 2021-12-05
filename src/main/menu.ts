@@ -42,6 +42,7 @@ export const execScript = async (key: string) => {
   if (selection === previous) {
     selection = '';
   }
+  console.log('selection', selection);
   try {
     const content = get(key) || '() => ""';
     const res = await run(content)()(selection);
