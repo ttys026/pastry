@@ -4,6 +4,7 @@ import { get } from './store';
 import nanoid from 'nanoid';
 import lodash from 'lodash';
 import axios from 'axios';
+import dayjs from 'dayjs';
 import { copy, paste, safeParse, getAssetPath } from './util';
 
 const injectedVariables = {
@@ -12,6 +13,7 @@ const injectedVariables = {
   _: lodash,
   lodash,
   axios,
+  dayjs,
   // banned for safety reason
   global: null,
   require: new ReferenceError('require is not defined'),

@@ -14,18 +14,18 @@ const formatOption: JSBeautifyOptions = {
   space_in_paren: false,
   indent_empty_lines: false,
   end_with_newline: true,
-  max_preserve_newlines: 2,
+  max_preserve_newlines: 1,
   preserve_newlines: true,
-  indent_size: 2
-}
+  indent_size: 2,
+};
 
 export default function App(props: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const editor = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   useKeyPress(['meta.s'], () => {
     console.log('event');
-    window.dispatchEvent(new Event('format'))
-  })
+    window.dispatchEvent(new Event('format'));
+  });
   const selectedKeyRef = useRef(props.selectedKey);
   selectedKeyRef.current = props.selectedKey;
 
@@ -38,11 +38,28 @@ export default function App(props: Props) {
         language: 'javascript',
         automaticLayout: true,
         tabSize: 2,
+        fixedOverflowWidgets: true,
         minimap: {
           enabled: false,
         },
       });
     }
+
+    const formatter = {
+      provideDocumentFormattingEdits(model) {
+        return [
+          {
+            text: js(model.getValue(), formatOption),
+            range: model.getFullModelRange(),
+          },
+        ];
+      },
+    };
+
+    monaco.languages.registerDocumentFormattingEditProvider(
+      'javascript',
+      formatter
+    );
 
     const removeListener = editor.current
       ?.getModel()
@@ -54,13 +71,7 @@ export default function App(props: Props) {
       });
 
     const format = () => {
-      // editor.current?.getAction('editor.action.formatDocument').run();
-      console.log('format')
-      const value = editor.current?.getValue() || '';
-      const formated = js(value, formatOption);
-      console.log('formated', formated);
-      editor.current?.setValue(formated);
-      setContent(selectedKeyRef.current, formated);
+      editor.current?.getAction('editor.action.formatDocument').run();
     };
 
     window.addEventListener('format', format);

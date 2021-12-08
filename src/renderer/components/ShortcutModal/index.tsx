@@ -23,7 +23,7 @@ export default (props: Props) => {
           value: ele.key,
         };
       });
-      return { ...folder, disabled: true, value: folder.key };
+      return { ...temp, disabled: true, value: folder.key };
     });
   }, [props.treeData, props.shortcuts]);
 

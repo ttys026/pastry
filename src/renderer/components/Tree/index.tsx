@@ -1,5 +1,10 @@
-import { Tree } from 'antd';
-import { MacCommandOutlined, FileOutlined } from '@ant-design/icons';
+import { Tree, Modal } from 'antd';
+import {
+  MacCommandOutlined,
+  FileOutlined,
+  FolderOpenOutlined,
+  FolderOutlined,
+} from '@ant-design/icons';
 import { useEffect, useRef, useState } from 'react';
 import type { DataNode } from 'rc-tree/lib/interface';
 import EditableTitle from './EditableTitle';
@@ -34,10 +39,12 @@ export default (props: Props) => {
     treeData,
     setTreeData: setTreeData,
     shortcuts = {},
-    setShortcuts
+    setShortcuts,
   } = props;
   const [key, setKey] = useState(0);
-  const [expandedKeys, setExpandedKeys] = useState<Array<string | number>>([]);
+  const [expandedKeys, setExpandedKeys] = useState<Array<string | number>>(
+    treeData.map((ele) => ele.key)
+  );
   const [shortcutVisible, setShortcutVisible] = useState<boolean>(false);
   const previousExpandedKeys = useRef<any>([]);
   const previousDragLeaf = useRef(true);
@@ -48,6 +55,9 @@ export default (props: Props) => {
 
   const selectedKeyRef = useRef(selectedKeys[0]);
   selectedKeyRef.current = selectedKeys[0];
+
+  const treeDataRef = useRef(treeData);
+  treeDataRef.current = treeData;
 
   useEffect(() => {
     const addFileListener = () => {
@@ -66,8 +76,10 @@ export default (props: Props) => {
               const newFile = getNewNode();
               setSelectedKeys([newFile.key]);
               if (isFakeRoot(parent)) {
+                setExpandedKeys((k) => [...k, parent.children[i].key]);
                 parent.children[i].children.push(newFile);
               } else {
+                setExpandedKeys((k) => [...k, parent.key]);
                 parent.children.push(newFile);
               }
             },
@@ -86,22 +98,45 @@ export default (props: Props) => {
     };
 
     const removeItem = () => {
-      setTreeData((s) => {
-        const temp = [...s];
-        setSelectedKeys([]);
-        const isLeaf = temp.every((ele) => ele.key !== selectedKeyRef.current);
-        if (!isLeaf) {
-          alert('删文件夹');
-        }
-        return findChild(
-          { tree: temp, node: { key: selectedKeyRef.current, isLeaf } },
-          (i) => ({
-            parent: (parent) => {
-              parent.children.splice(i, 1);
-            },
-          })
-        );
-      });
+      const foundFolder = treeDataRef.current.find(
+        (ele) => ele.key === selectedKeyRef.current
+      );
+      const isLeaf = !foundFolder;
+
+      const doDelete = () => {
+        setTreeData((s) => {
+          const temp = [...s];
+          setShortcuts((s) => {
+            const temp = { ...s };
+            delete temp[selectedKeyRef.current];
+            return temp;
+          });
+          setSelectedKeys([]);
+          return findChild(
+            { tree: temp, node: { key: selectedKeyRef.current, isLeaf } },
+            (i) => ({
+              parent: (parent) => {
+                parent.children.splice(i, 1);
+              },
+            })
+          );
+        });
+      };
+
+      if (foundFolder && foundFolder.children.length) {
+        Modal.confirm({
+          title: '确认删除',
+          content:
+            '确认要删除该文件夹吗？删除文件夹会移除该文件夹下的所有脚本。',
+          okText: '删除',
+          cancelText: '取消',
+          onOk: () => {
+            doDelete();
+          },
+        });
+      } else {
+        doDelete();
+      }
     };
 
     const setShortcut = () => {
@@ -121,6 +156,12 @@ export default (props: Props) => {
       window.removeEventListener('shortcut', setShortcut);
     };
   }, []);
+
+  useEffect(() => {
+    if (!selectedKeyRef.current) {
+      setExpandedKeys(treeData.map((ele) => ele.key));
+    }
+  }, [treeData]);
 
   return (
     <div
@@ -173,7 +214,16 @@ export default (props: Props) => {
         expandAction={false}
         multiple={false}
         selectedKeys={selectedKeys}
-        icon={(node) => Number.isInteger(shortcuts[node.eventKey]) ? <MacCommandOutlined /> : <FileOutlined />}
+        icon={(node) => {
+          if (!node.isLeaf) {
+            return node.expanded ? <FolderOpenOutlined /> : <FolderOutlined />;
+          }
+          return Number.isInteger(shortcuts[node.eventKey]) ? (
+            <MacCommandOutlined />
+          ) : (
+            <FileOutlined />
+          );
+        }}
         expandedKeys={expandedKeys}
         draggable={{ icon: false }}
         titleRender={(node) => {

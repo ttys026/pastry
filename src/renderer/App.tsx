@@ -28,7 +28,7 @@ export default function App() {
   const [treeDataLoading, setTreeDataLoading] = useState(true);
 
   const isLeaf = useMemo(() => {
-    return !treeData.find((ele) => ele.key === selectedKey);
+    return selectedKey && !treeData.find((ele) => ele.key === selectedKey);
   }, [selectedKey, treeData]);
 
   useEffect(() => {
@@ -77,7 +77,7 @@ export default function App() {
   return (
     <div id="container">
       <div id="toolbar">
-        <Toolbar />
+        <Toolbar isLeaf={isLeaf} />
       </div>
       <div id="content">
         <Tree
@@ -98,7 +98,7 @@ export default function App() {
               initialValue={editorState.initialValue}
             />
           ) : (
-            <Empty />
+            <Empty treeData={treeData} />
           )}
         </Spin>
       </div>

@@ -10,6 +10,7 @@ import {
   screen,
   globalShortcut,
   systemPreferences,
+  shell
 } from 'electron';
 import './controller';
 import getMenu, { execScript } from './menu';
@@ -97,6 +98,11 @@ const init = async () => {
     settingWindow?.hide();
   });
 
+  settingWindow.webContents.on('new-window', function(e, url) {
+    e.preventDefault();
+    shell.openExternal(url);
+  });
+
   mainWindow?.setAlwaysOnTop(true, 'screen-saver');
   mainWindow?.setVisibleOnAllWorkspaces(true, {
     skipTransformProcessType: true,
@@ -109,7 +115,8 @@ const init = async () => {
 
   const ret = globalShortcut.register('Command+Shift+V', () => {
     const cursorPosition = screen.getCursorScreenPoint();
-    mainWindow?.setPosition(0, 0);
+    const display = screen.getDisplayNearestPoint(cursorPosition);
+    mainWindow?.setPosition(display.bounds.x, display.bounds.y);
 
     const menu = getMenu();
 
@@ -133,12 +140,12 @@ const init = async () => {
     .fill('')
     .forEach((_, index) => {
       globalShortcut.register(`Command+${index}`, () => {
-        console.log('key press', index);
         const shortcuts = safeParse(get('shortcut') || '{}', {});
+        console.log('key press', index, shortcuts);
         const key = Object.entries(shortcuts).find(([, v]) => {
           return v === index;
         })?.[0];
-        if (key) {
+        if (key && key !== 'undefined') {
           execScript(key);
         }
         console.log('exec-script', index, key);
