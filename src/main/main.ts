@@ -12,14 +12,14 @@ import {
   systemPreferences,
   shell
 } from 'electron';
-import './controller';
+import { log } from './controller';
 import getMenu, { execScript } from './menu';
 import { initClipboardListener, manager } from './clipboardManager';
 import { resolveHtmlPath, getAssetPath, safeParse } from './util';
 import { get } from './store';
 
 let mainWindow: BrowserWindow | null = null;
-let settingWindow: BrowserWindow | null = null;
+export let settingWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 
 if (process.env.NODE_ENV === 'production') {
@@ -81,6 +81,7 @@ const init = async () => {
     simpleFullscreen: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: false,
     },
   });
 
@@ -141,15 +142,15 @@ const init = async () => {
     .forEach((_, index) => {
       globalShortcut.register(`Command+${index}`, () => {
         const shortcuts = safeParse(get('shortcut') || '{}', {});
-        console.log('key press', index, shortcuts);
+        log(`shortcut pressed: command + ${index}`);
         const key = Object.entries(shortcuts).find(([, v]) => {
           return v === index;
         })?.[0];
         if (key && key !== 'undefined') {
           execScript(key);
+        } else {
+          log(`error: command + ${index} is not bound to any scripts`);
         }
-        console.log('exec-script', index, key);
-        // copy
       });
     });
 

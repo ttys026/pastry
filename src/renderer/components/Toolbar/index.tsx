@@ -69,7 +69,7 @@ export default (props: Props) => {
           <Button
             style={{ float: 'right' }}
             onClick={() => {
-              window.dispatchEvent(new Event('delete'));
+              window.dispatchEvent(new Event('debugger'));
             }}
             icon={<CodeOutlined />}
             size="small"

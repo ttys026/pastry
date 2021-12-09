@@ -6,6 +6,7 @@ import lodash from 'lodash';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import { copy, paste, safeParse, getAssetPath } from './util';
+import { log } from './controller';
 
 const injectedVariables = {
   // useful libs
@@ -18,6 +19,15 @@ const injectedVariables = {
   global: null,
   require: new ReferenceError('require is not defined'),
   process: new ReferenceError('process is not defined'),
+  console: Object.keys(console).reduce((acc, key) => {
+    acc[key] = (...args: string[]) =>
+      log(
+        `script console.${key} result: ${args
+          .map((ele) => JSON.stringify(ele))
+          .join(' ')}`
+      );
+    return acc;
+  }, {}),
 };
 
 const ellipsis = (content: string) => {
@@ -44,16 +54,17 @@ export const execScript = async (key: string) => {
   if (selection === previous) {
     selection = '';
   }
-  console.log('selection', selection);
+  log(`current selection: ${selection}`);
   try {
     const content = get(key) || '() => ""';
-    const res = await run(content)()(selection);
-    console.log('exec result', res);
+    const script = run(content)();
+    const res = await script(selection);
+    log(`function execute succeed with response: ${res}`);
     clipboard.writeText(res);
     paste();
     manager.unlock();
   } catch (e) {
-    console.log('exec error', e);
+    log(`function execute failed with error: ${e}`);
     clipboard.writeText(e.message);
     await paste();
     clipboard.write(previous);

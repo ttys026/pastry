@@ -153,6 +153,7 @@ export default (props: Props) => {
         <div>
           <Table
             size="small"
+            rowKey='key'
             pagination={false}
             bordered
             columns={columns}
