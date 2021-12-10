@@ -32,6 +32,7 @@ export default function App() {
   const [shortcuts, _setShortcuts] = useState<Record<string, number>>({});
   const [treeDataLoading, setTreeDataLoading] = useState(true);
   const [debuggerVisible, setDebuggerVisible] = useState(false);
+  const [debuggerMaximized, setDebuggerMaximized] = useState(false);
 
   const isLeaf = useMemo(() => {
     return selectedKey && !treeData.find((ele) => ele.key === selectedKey);
@@ -53,10 +54,17 @@ export default function App() {
     const toggleDebugger = () => {
       setDebuggerVisible(v => !v);
     }
+
+    const toggleDebuggerMaximized = () => {
+      setDebuggerMaximized(v => !v);
+    }
+
     window.addEventListener('debugger', toggleDebugger);
+    window.addEventListener('maximize', toggleDebuggerMaximized);
 
     return () => {
       window.removeEventListener('debugger', toggleDebugger);
+      window.removeEventListener('maximize', toggleDebuggerMaximized);
     }
   }, []);
 
@@ -88,6 +96,16 @@ export default function App() {
     });
   }, [selectedKey]);
 
+  const getHeight = () => {
+    if(debuggerMaximized) {
+      return 0;
+    }
+    if(debuggerVisible) {
+      return undefined;
+    }
+    return height + 5;
+  }
+
   return (
     <div id="container">
       <div id="toolbar">
@@ -110,9 +128,9 @@ export default function App() {
             <SplitPane
               split="horizontal"
               minSize={200}
-              {...(debuggerVisible ? {} : { size: height + 5 })}
-              defaultSize={debuggerVisible ? height - 200 : height + 5}
-              allowResize={debuggerVisible}
+              size={getHeight()}
+              defaultSize={getHeight() ?? height - 200}
+              allowResize={debuggerVisible && !debuggerMaximized}
               maxSize={height - 200}
               pane2Style={{ overflow: 'auto' }}
             >
@@ -120,7 +138,7 @@ export default function App() {
                 selectedKey={editorState.selectedKey}
                 initialValue={editorState.initialValue}
               />
-              {debuggerVisible && <Debugger />}
+              {debuggerVisible ? <Debugger debuggerMaximized={debuggerMaximized} /> : <div />}
             </SplitPane>
           ) : (
             <Empty treeData={treeData} />

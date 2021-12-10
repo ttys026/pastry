@@ -21,11 +21,7 @@ const injectedVariables = {
   process: new ReferenceError('process is not defined'),
   console: Object.keys(console).reduce((acc, key) => {
     acc[key] = (...args: string[]) =>
-      log(
-        `script console.${key} result: ${args
-          .map((ele) => JSON.stringify(ele))
-          .join(' ')}`
-      );
+      log(key as keyof Console, `script console.${key} result`, args);
     return acc;
   }, {}),
 };
@@ -54,17 +50,17 @@ export const execScript = async (key: string) => {
   if (selection === previous) {
     selection = '';
   }
-  log(`current selection: ${selection}`);
+  log('info', `current selection: `, selection);
   try {
     const content = get(key) || '() => ""';
     const script = run(content)();
     const res = await script(selection);
-    log(`function execute succeed with response: ${res}`);
+    log('info', `function execute succeed with response: `, res);
     clipboard.writeText(res);
     paste();
     manager.unlock();
   } catch (e) {
-    log(`function execute failed with error: ${e}`);
+    log('info', `function execute failed with error: `, e);
     clipboard.writeText(e.message);
     await paste();
     clipboard.write(previous);
@@ -107,6 +103,7 @@ export default () => {
           label: `${index + 1}. ${ellipsis(content)}`,
           click: () => {
             clipboard.write(ele);
+            log('info', 'paste text: ', ele);
             paste();
           },
           type: 'normal',
@@ -123,6 +120,7 @@ export default () => {
           label: `${index + 1}. ${ellipsis(content)}`,
           click: () => {
             clipboard.write(ele);
+            log('info', 'paste link: ', ele);
             paste();
           },
           type: 'normal',
@@ -147,6 +145,7 @@ export default () => {
           icon: content.crop(cropParams).resize({ width: 80 }),
           click: () => {
             clipboard.write(ele);
+            log('info', 'paste image: <Binary ...>');
             paste();
           },
           type: 'normal',

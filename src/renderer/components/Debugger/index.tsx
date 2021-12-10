@@ -1,14 +1,41 @@
-import { useEffect, useState } from 'react';
-import { CloseOutlined } from '@ant-design/icons';
-import { Button } from 'antd';
+import { useEffect, useRef, useState } from 'react';
+import {
+  CloseOutlined,
+  StopOutlined,
+  UpCircleOutlined,
+  DownCircleOutlined,
+} from '@ant-design/icons';
+import { Button, Tooltip } from 'antd';
 import dayjs from 'dayjs';
+import Inspector from 'react-inspector';
+import './index.css';
 
-export default () => {
-  const [log, setLog] = useState([]);
+interface LogItem {
+  time: string;
+  type: keyof Console;
+  args: any[];
+}
+
+interface Props {
+  debuggerMaximized: boolean;
+}
+
+export default (props: Props) => {
+  const [log, setLog] = useState<LogItem[]>([]);
+  const [key, setKey] = useState(0);
+  const container = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    const writeLog = (_, data) => {
-      // @ts-ignore
-      setLog((d) => [...d, `${dayjs().format('HH:mm:ss')}: ${data}`]);
+    const writeLog = (_, payload: { type: keyof Console; args: any[] }) => {
+      setLog((d) => [
+        ...d,
+        {
+          // @ts-ignore
+          time: `${dayjs().format('HH:mm:ss')} ✗`,
+          type: payload.type,
+          args: payload.args,
+        },
+      ]);
     };
     window.ipcRenderer.on('log', writeLog);
     return () => {
@@ -16,23 +43,111 @@ export default () => {
     };
   }, []);
 
+  useEffect(() => {
+    try {
+      container.current.parentElement.parentElement.scrollTop =
+        Number.MAX_SAFE_INTEGER;
+    } catch (e) {
+      console.log('error', e);
+    }
+  }, [log]);
+
   return (
     <div>
-      <Button
-        onClick={() => window.dispatchEvent(new Event('debugger'))}
-        style={{ position: 'sticky', float: 'right', top: 8, margin: 8 }}
-        size="small"
-        type="text"
+      <div
+        style={{
+          position: 'sticky',
+          float: 'right',
+          top: 0,
+          margin: 0,
+          backgroundColor: 'white',
+          width: '100%',
+          zIndex: 1,
+          padding: '4px 8px',
+        }}
       >
-        <CloseOutlined />
-      </Button>
-      <div style={{ padding: 16 }}>
-        {
-          log.length === 0 && <div>请尝试执行脚本，查看日志</div>
-        }
-        {log.map((ele, index) => (
-          <div key={index}>{ele}</div>
-        ))}
+        <Tooltip title="关闭">
+          <Button
+            style={{ float: 'right' }}
+            onClick={() => window.dispatchEvent(new Event('debugger'))}
+            size="small"
+            type="text"
+          >
+            <CloseOutlined />
+          </Button>
+        </Tooltip>
+        <Tooltip title="清空">
+          <Button
+            style={{ float: 'right', marginRight: 8 }}
+            onClick={() => setLog([])}
+            size="small"
+            type="text"
+          >
+            <StopOutlined />
+          </Button>
+        </Tooltip>
+        <Tooltip key={key} title="全屏">
+          <Button
+            style={{ float: 'right', marginRight: 8 }}
+            onClick={() => {
+              setKey((k) => k + 1);
+              window.dispatchEvent(new Event('maximize'));
+            }}
+            size="small"
+            type="text"
+          >
+            {props.debuggerMaximized ? (
+              <DownCircleOutlined />
+            ) : (
+              <UpCircleOutlined />
+            )}
+          </Button>
+        </Tooltip>
+      </div>
+      <div ref={container} style={{ fontFamily: 'monospace' }}>
+        {log.length === 0 && (
+          <div style={{ marginLeft: 16 }}>执行脚本后可在此处查看日志</div>
+        )}
+        {log.map((ele, index) => {
+          const [info, payload] = ele.args;
+          return (
+            <div
+              key={index}
+              style={{
+                backgroundColor:
+                  { error: 'rgb(255,239,239)', warn: 'rgb(255,252,228)' }[
+                    ele.type
+                  ] || 'white',
+              }}
+              className="logItem"
+            >
+              <span>
+                {ele.time}&nbsp;{info}
+              </span>
+              {ele.args.length > 1 && (
+                <span className="logTree">
+                  {Array.isArray(payload) && payload.length ? (
+                    payload.map((element, i) => (
+                      <Inspector
+                        table={ele.type === 'table'}
+                        theme="chromeLight"
+                        key={`${index}-${i}`}
+                        data={element}
+                      />
+                    ))
+                  ) : (
+                    <Inspector
+                      table={ele.type === 'table'}
+                      theme="chromeLight"
+                      key={`${index}--1`}
+                      data={payload}
+                    />
+                  )}
+                </span>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

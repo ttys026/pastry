@@ -142,14 +142,14 @@ const init = async () => {
     .forEach((_, index) => {
       globalShortcut.register(`Command+${index}`, () => {
         const shortcuts = safeParse(get('shortcut') || '{}', {});
-        log(`shortcut pressed: command + ${index}`);
+        log('info', `shortcut pressed: command + ${index}`);
         const key = Object.entries(shortcuts).find(([, v]) => {
           return v === index;
         })?.[0];
         if (key && key !== 'undefined') {
           execScript(key);
         } else {
-          log(`error: command + ${index} is not bound to any scripts`);
+          log('error', `error: command + ${index} is not bound to any scripts`);
         }
       });
     });

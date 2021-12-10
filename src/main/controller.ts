@@ -10,8 +10,6 @@ ipcMain.handle('setData', async (_, { key, data }: { key: string, data: string }
   return storage.set(key, data);
 })
 
-
-export const log = (payload: string) => {
-  console.log('emit', payload);
-  settingWindow.webContents.send('log', payload);
+export const log = (type: keyof Console, ...args: any[]) => {
+  settingWindow.webContents.send('log', { type, args });
 }
