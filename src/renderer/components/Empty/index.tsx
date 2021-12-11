@@ -92,7 +92,7 @@ const data = [
 ];
 
 export default (props: Props) => {
-  console.log('https://axios-http.com/docs/api_intro', props);
+  console.log(props);
   useKeyPress('meta.v', async () => {
     const text = await navigator.clipboard.readText();
     message.success(

@@ -64,6 +64,8 @@ export default (props: Props) => {
           width: '100%',
           zIndex: 1,
           padding: '4px 8px',
+          borderBottom: '1px solid rgba(0,0,0,0.2)',
+          background: '#fafafa',
         }}
       >
         <Tooltip title="关闭">
@@ -104,9 +106,19 @@ export default (props: Props) => {
           </Button>
         </Tooltip>
       </div>
-      <div ref={container} style={{ fontFamily: 'monospace' }}>
+      <div ref={container} style={{ fontFamily: 'monospace', zoom: 1.1 }}>
         {log.length === 0 && (
-          <div style={{ marginLeft: 16 }}>执行脚本后可在此处查看日志</div>
+          <div
+            style={{
+              position: 'absolute',
+              transform: 'translate(-50%, -50%)',
+              top: '50%',
+              left: '50%',
+              fontSize: 12,
+            }}
+          >
+            执行脚本后可在此处查看日志
+          </div>
         )}
         {log.map((ele, index) => {
           const [info, payload] = ele.args;
@@ -121,7 +133,7 @@ export default (props: Props) => {
               }}
               className="logItem"
             >
-              <span>
+              <span style={{ flexShrink: 0 }}>
                 {ele.time}&nbsp;{info}
               </span>
               {ele.args.length > 1 && (

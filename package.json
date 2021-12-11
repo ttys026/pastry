@@ -86,7 +86,8 @@
       "output": "release/build"
     },
     "extraResources": [
-      "./assets/**"
+      "./assets/**",
+      "./release/lib/**"
     ]
   },
   "repository": {

@@ -1,8 +1,24 @@
 /* eslint import/prefer-default-export: off, import/no-mutable-exports: off */
 import { URL } from 'url';
 import { app } from 'electron';
+import { spawn } from 'child_process';
 import { keyboard, Key } from '@nut-tree/nut-js';
 import path from 'path';
+
+class Deferred<T> {
+  promise: Promise<T>;
+
+  resolve!: (value: T | PromiseLike<T>) => void;
+
+  reject!: (reason?: any) => void;
+
+  constructor() {
+    this.promise = new Promise((resolve, reject) => {
+      this.resolve = resolve;
+      this.reject = reject;
+    });
+  }
+}
 
 const delay = (ms: number) => {
   return new Promise((res) => setTimeout(res, ms));
@@ -11,7 +27,7 @@ const delay = (ms: number) => {
 export const copy = async () => {
   await keyboard.pressKey(Key.LeftSuper, Key.C);
   await keyboard.releaseKey(Key.LeftSuper, Key.C);
-  await delay(32);
+  await delay(64);
 };
 
 export const paste = async () => {
@@ -88,6 +104,43 @@ const RESOURCES_PATH = app.isPackaged
   ? path.join(process.resourcesPath, 'assets')
   : path.join(__dirname, '../../assets');
 
+  const RELEASE_PATH = app.isPackaged
+  ? path.join(process.resourcesPath, 'release', 'lib')
+  : path.join(__dirname, '../../release/lib');
+
 export const getAssetPath = (...paths: string[]): string => {
   return path.join(RESOURCES_PATH, ...paths);
 };
+
+export const getReleasePath = (...paths: string[]): string => {
+  return path.join(RELEASE_PATH, ...paths);
+};
+
+let currentActiveLock = new Deferred<string>();
+const cp = spawn('bash');
+const binary = getReleasePath('activeApp');
+
+cp.stdout.on('data', (chunk) => {
+  try {
+    const { owner } = JSON.parse(chunk.toString());
+    return currentActiveLock.resolve(owner.path);
+  } catch (e) {
+    return '';
+  }
+})
+
+/**
+ * use the binary from https://github.com/sindresorhus/active-win
+ * @returns 
+ */
+export const getActiveApp = async () => {
+  try {
+    cp.stdin.write(`${binary} --no-screen-recording-permission\n\n`);
+    const timer = new Promise((_, rej) => setTimeout(rej, 500));
+    const active = await Promise.race([currentActiveLock.promise, timer]);
+    currentActiveLock = new Deferred<string>();
+    return active;
+  } catch (e) {
+    return '';
+  }
+}

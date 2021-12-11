@@ -5,7 +5,7 @@ import nanoid from 'nanoid';
 import lodash from 'lodash';
 import axios from 'axios';
 import dayjs from 'dayjs';
-import { copy, paste, safeParse, getAssetPath } from './util';
+import { copy, paste, safeParse, getAssetPath, getActiveApp } from './util';
 import { log } from './controller';
 
 const injectedVariables = {
@@ -21,7 +21,7 @@ const injectedVariables = {
   process: new ReferenceError('process is not defined'),
   console: Object.keys(console).reduce((acc, key) => {
     acc[key] = (...args: string[]) =>
-      log(key as keyof Console, `script console.${key} result`, args);
+      log(key as keyof Console, `script console.${key}:`, args);
     return acc;
   }, {}),
 };
@@ -45,16 +45,19 @@ interface Item {
 export const execScript = async (key: string) => {
   manager.lock();
   const previous = manager.get(0);
+  const list = manager.getHistories();
   await copy();
   let selection = clipboard.readText();
-  if (selection === previous) {
+  if (selection === previous?.text) {
     selection = '';
   }
   log('info', `current selection: `, selection);
   try {
     const content = get(key) || '() => ""';
     const script = run(content)();
-    const res = await script(selection);
+    const active = await getActiveApp();
+    log('info', `current active app: `, active);
+    const res = await script(selection, list, active);
     log('info', `function execute succeed with response: `, res);
     clipboard.writeText(res);
     paste();
@@ -103,7 +106,7 @@ export default () => {
           label: `${index + 1}. ${ellipsis(content)}`,
           click: () => {
             clipboard.write(ele);
-            log('info', 'paste text: ', ele);
+            log('info', 'paste text: ', ele.text);
             paste();
           },
           type: 'normal',
@@ -120,7 +123,7 @@ export default () => {
           label: `${index + 1}. ${ellipsis(content)}`,
           click: () => {
             clipboard.write(ele);
-            log('info', 'paste link: ', ele);
+            log('info', 'paste link: ', ele.text);
             paste();
           },
           type: 'normal',

@@ -172,4 +172,4 @@ app
     init();
     showSystemAccessibilityPrompt();
   })
-  .catch(console.log);
+  .catch(console.error);

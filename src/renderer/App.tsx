@@ -84,7 +84,6 @@ export default function App() {
     _setShortcuts((s) => {
       const newState = newStateGetter(s);
       setContent('shortcut', JSON.stringify(newState));
-      console.log('new state', newState);
       return newState;
     });
   }, []);
@@ -133,6 +132,7 @@ export default function App() {
               allowResize={debuggerVisible && !debuggerMaximized}
               maxSize={height - 200}
               pane2Style={{ overflow: 'auto' }}
+              pane1Style={{ display: debuggerMaximized && debuggerVisible ? 'none' : 'flex' }}
             >
               <Editor
                 selectedKey={editorState.selectedKey}

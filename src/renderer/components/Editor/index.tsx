@@ -23,7 +23,6 @@ export default function App(props: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const editor = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   useKeyPress(['meta.s'], () => {
-    console.log('event');
     window.dispatchEvent(new Event('format'));
   });
   const selectedKeyRef = useRef(props.selectedKey);
@@ -83,7 +82,6 @@ export default function App(props: Props) {
   }, []);
 
   useEffect(() => {
-    console.log('set initial value', props.initialValue);
     editor.current?.setValue(props.initialValue || '');
   }, [props.initialValue, props.selectedKey]);
 
