@@ -1,7 +1,8 @@
 // import React from 'react';
 
 import { useKeyPress } from 'ahooks';
-import { message, Table } from 'antd';
+import { QuestionCircleOutlined } from '@ant-design/icons';
+import { message, Table, Popover } from 'antd';
 import type { DataNode } from 'rc-tree/lib/interface';
 import './index.css';
 
@@ -46,18 +47,30 @@ const columns = [
       if ([0, 2].includes(index)) {
         return {
           props: { rowSpan: 2 },
-          children: <a target='_blank' href={value}>查看</a>,
+          children: (
+            <a target="_blank" href={value}>
+              查看
+            </a>
+          ),
         };
       }
       if ([1, 3].includes(index)) {
         return {
-          children: <a target='_blank' href={value}>查看</a>,
+          children: (
+            <a target="_blank" href={value}>
+              查看
+            </a>
+          ),
           props: { rowSpan: 0 },
         };
       }
       return {
         props: { rowSpan: 1 },
-        children: <a target='_blank' href={value}>查看</a>,
+        children: (
+          <a target="_blank" href={value}>
+            查看
+          </a>
+        ),
       };
     },
   },
@@ -153,16 +166,77 @@ export default (props: Props) => {
         <div>
           <Table
             size="small"
-            rowKey='key'
+            rowKey="key"
             pagination={false}
             bordered
             columns={columns}
             dataSource={data}
           />
         </div>
+        <div style={{ margin: '16px 0' }}>
+          除了<span className="shortcut">selection</span>
+          外，函数还有另外两个入参，分别是剪贴板的历史记录和当前触发粘贴的 app
+        </div>
+        <div>
+          <Table
+            size="small"
+            rowKey="key"
+            pagination={false}
+            bordered
+            columns={[
+              { key: 0, title: '参数序列', dataIndex: 'order' },
+              { key: 1, title: '变量内容', dataIndex: 'content' },
+            ]}
+            dataSource={[
+              {
+                order: 'args[0]',
+                content: (
+                  <>
+                    当前选中的文本内容
+                    <Popover
+                      // @ts-ignore
+                      getPopupContainer={(p) => p?.parentNode}
+                      overlayInnerStyle={{
+                        wordBreak: 'break-all',
+                        maxWidth: 300,
+                      }}
+                      content="函数执行前会使用 Command + C 触发复制行为来获取当前选中内容，部分编辑器(如: VS Code) 在未选中任何内容时，会粘贴当前行的内容(包含最后的换行符)至剪贴板，可以使用第三个参数针对特殊应用单独处理"
+                    >
+                      <span className="extra"><QuestionCircleOutlined /></span>
+                    </Popover>
+                  </>
+                ),
+              },
+              {
+                order: 'args[1]',
+                content: '剪贴板历史',
+              },
+              {
+                order: 'args[2]',
+                content: (
+                  <>
+                    触发粘贴操作 App 的完整路径
+                    <Popover
+                      // @ts-ignore
+                      getPopupContainer={(p) => p?.parentNode}
+                      overlayInnerStyle={{
+                        wordBreak: 'break-all',
+                        maxWidth: 300,
+                      }}
+                      content="获取的路径为当前聚焦且位于最上层的应用"
+                    >
+                      <span className="extra"><QuestionCircleOutlined /></span>
+                    </Popover>
+                  </>
+                ),
+              },
+            ]}
+          />
+        </div>
+        <div style={{ marginTop: 16 }}>
+          了解了这些信息后，你可以新建一个文件，开始在编写你自己的脚本了。
+        </div>
       </div>
     </div>
   );
-  // }
-  // return <div>This is empty</div>;
 };

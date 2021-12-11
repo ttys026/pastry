@@ -10,13 +10,13 @@ import {
   screen,
   globalShortcut,
   systemPreferences,
-  shell
+  shell,
 } from 'electron';
 import { log } from './controller';
 import getMenu, { execScript } from './menu';
 import { initClipboardListener, manager } from './clipboardManager';
 import { resolveHtmlPath, getAssetPath, safeParse } from './util';
-import { get } from './store';
+import { get, set } from './store';
 
 let mainWindow: BrowserWindow | null = null;
 export let settingWindow: BrowserWindow | null = null;
@@ -99,7 +99,7 @@ const init = async () => {
     settingWindow?.hide();
   });
 
-  settingWindow.webContents.on('new-window', function(e, url) {
+  settingWindow.webContents.on('new-window', function (e, url) {
     e.preventDefault();
     shell.openExternal(url);
   });
@@ -166,10 +166,35 @@ const showSystemAccessibilityPrompt = () => {
   }
 };
 
+const addDemoFiles = () => {
+  const initTreeData = [
+    {
+      title: 'demo',
+      key: '0-0',
+      children: [{ title: 'console.log', key: 'demo-0', isLeaf: true }],
+    },
+  ];
+  const needInit = !get('init');
+  if (needInit) {
+    set('tree', JSON.stringify(initTreeData));
+    set('shortcut', '{"demo-0":0}');
+    set(
+      'demo-0',
+      `(selection, list, app) => {
+  console.log(selection, list, app);
+  return "Hello World";
+}
+`
+    );
+    set('init', 'true');
+  }
+};
+
 app
   .whenReady()
   .then(() => {
     init();
     showSystemAccessibilityPrompt();
+    addDemoFiles();
   })
   .catch(console.error);

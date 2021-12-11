@@ -1,6 +1,6 @@
 import * as monaco from 'monaco-editor';
 
-const dayjsType = require('!!raw-loader!./lib/dayjs.d.ts');
+const dayjsType = require('!!raw-loader!./lib/dayjs.d.ts.txt');
 // set modified dayjs types
 monaco.languages.typescript.javascriptDefaults.addExtraLib(
   dayjsType.default,

@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, ensureDirSync } from 'fs-extra';
+import { readFileSync, writeFileSync, ensureDirSync, removeSync } from 'fs-extra';
 import { join } from 'path';
 import { app } from 'electron';
 
@@ -16,4 +16,9 @@ export const get = (key: string) => {
 export const set = (key: string, value: string) => {
   ensureDirSync(storageDir);
   return writeFileSync(join(storageDir, key), value);
+};
+
+export const remove = (key: string) => {
+  ensureDirSync(storageDir);
+  return removeSync(join(storageDir, key));
 };

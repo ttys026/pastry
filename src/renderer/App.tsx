@@ -10,14 +10,6 @@ import { Spin } from 'antd';
 import SplitPane from 'react-split-pane';
 import { useSize } from 'ahooks';
 
-const mock = [
-  {
-    title: 'demo',
-    key: '0-0',
-    children: [{ title: 'console.log', key: 'demo-0', isLeaf: true }],
-  },
-];
-
 export default function App() {
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const selectedKey = selectedKeys[0];
@@ -43,8 +35,7 @@ export default function App() {
       try {
         const shortcut = JSON.parse((await getContent('shortcut')) || '{}');
         _setShortcuts(shortcut);
-        const data = res ? JSON.parse(res) : mock;
-        setTreeData(data);
+        setTreeData(JSON.parse(res));
         setTreeDataLoading(false);
       } catch (e) {
         setTreeData([]);

@@ -1,6 +1,6 @@
 import * as monaco from 'monaco-editor';
 
-const lodashTypes = require('!!raw-loader!./lib/lodash.d.ts');
+const lodashTypes = require('!!raw-loader!./lib/lodash.d.ts.txt');
 
 // load lodash types
 monaco.languages.typescript.javascriptDefaults.addExtraLib(

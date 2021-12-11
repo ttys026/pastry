@@ -10,6 +10,7 @@ import type { DataNode } from 'rc-tree/lib/interface';
 import EditableTitle from './EditableTitle';
 import { findChild, isFakeRoot } from '../../utils';
 import ShortcutModal from '../ShortcutModal';
+import { removeContent } from '../../services';
 
 const getNewNode = () => ({
   isLeaf: true,
@@ -116,6 +117,12 @@ export default (props: Props) => {
             { tree: temp, node: { key: selectedKeyRef.current, isLeaf } },
             (i) => ({
               parent: (parent) => {
+                removeContent(selectedKeyRef.current);
+                if (isFakeRoot(parent)) {
+                  parent.children.forEach((ele) =>
+                    removeContent(ele.key as string)
+                  );
+                }
                 parent.children.splice(i, 1);
               },
             })

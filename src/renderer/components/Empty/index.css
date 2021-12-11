@@ -9,6 +9,11 @@
   overflow: auto;
 }
 
+.extra {
+  padding-left: 8px;
+  cursor: help;
+}
+
 .demo {
   padding: 12px;
   margin: 12px 0;

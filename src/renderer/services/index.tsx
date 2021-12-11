@@ -13,3 +13,7 @@ export const getContent = async (key: string) => {
 export const setContent = async (key: string, data: string) => {
   return await window.ipcRenderer.invoke('setData', { key, data });
 };
+
+export const removeContent = async (key: string) => {
+  return await window.ipcRenderer.invoke('removeData', key);
+};
