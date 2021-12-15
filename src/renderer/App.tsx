@@ -132,7 +132,7 @@ export default function App() {
               {debuggerVisible ? <Debugger debuggerMaximized={debuggerMaximized} /> : <div />}
             </SplitPane>
           ) : (
-            <Empty treeData={treeData} />
+            <Empty selectedKey={selectedKey} treeData={treeData} />
           )}
         </Spin>
       </div>

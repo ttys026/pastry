@@ -1,13 +1,15 @@
 // import React from 'react';
 
 import { useKeyPress } from 'ahooks';
-import { QuestionCircleOutlined } from '@ant-design/icons';
-import { message, Table, Popover } from 'antd';
+import { QuestionCircleOutlined, FolderOpenOutlined } from '@ant-design/icons';
+import { message, Table, Popover, Button } from 'antd';
 import type { DataNode } from 'rc-tree/lib/interface';
+import dayjs from 'dayjs';
 import './index.css';
 
 interface Props {
   treeData: DataNode[];
+  selectedKey: string;
 }
 
 const columns = [
@@ -105,15 +107,46 @@ const data = [
 ];
 
 export default (props: Props) => {
-  console.log(props);
+  const selected = (props.treeData || []).find(
+    (ele) => ele.key === props.selectedKey
+  );
   useKeyPress('meta.v', async () => {
     const text = await navigator.clipboard.readText();
-    message.success(
-      `你粘贴了 "${text.length > 40 ? text.slice(0, 40) + '...' : text}"`
-    );
+    if (!props.selectedKey) {
+      message.success(
+        `你粘贴了 "${text.length > 40 ? text.slice(0, 40) + '...' : text}"`
+      );
+    }
   });
 
-  return (
+  return selected ? (
+    <div className="intro">
+      <div style={{ width: 500 }}>
+        <div style={{ fontSize: 28 }}>
+          <FolderOpenOutlined /> {selected?.title}
+        </div>
+        <div style={{ color: 'rgba(0,0,0,0.65)' }}>
+          创建于：
+          {dayjs(
+            Number(((selected.key as string) || '0-0').split('-')[1])
+          ).format('YYYY-MM-DD')}
+          ，包含 {selected.children.length} 个文件
+        </div>
+        <Button
+          size="small"
+          style={{
+            marginLeft: -4,
+            marginTop: 8,
+          }}
+          onClick={() => {
+            window.dispatchEvent(new Event('new-file'));
+          }}
+        >
+          新建代码片段
+        </Button>
+      </div>
+    </div>
+  ) : (
     <div className="intro">
       <div style={{ width: 500 }}>
         <div>
@@ -202,7 +235,9 @@ export default (props: Props) => {
                       }}
                       content="函数执行前会使用 Command + C 触发复制行为来获取当前选中内容，部分编辑器(如: VS Code) 在未选中任何内容时，会粘贴当前行的内容(包含最后的换行符)至剪贴板，可以使用第三个参数针对特殊应用单独处理"
                     >
-                      <span className="extra"><QuestionCircleOutlined /></span>
+                      <span className="extra">
+                        <QuestionCircleOutlined />
+                      </span>
                     </Popover>
                   </>
                 ),
@@ -225,7 +260,9 @@ export default (props: Props) => {
                       }}
                       content="获取的路径为当前聚焦且位于最上层的应用"
                     >
-                      <span className="extra"><QuestionCircleOutlined /></span>
+                      <span className="extra">
+                        <QuestionCircleOutlined />
+                      </span>
                     </Popover>
                   </>
                 ),

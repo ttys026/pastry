@@ -15,8 +15,9 @@ import {
 import { log } from './controller';
 import getMenu, { execScript } from './menu';
 import { initClipboardListener, manager } from './clipboardManager';
-import { resolveHtmlPath, getAssetPath, safeParse } from './util';
+import { resolveHtmlPath, safeParse } from './util';
 import { get, set } from './store';
+import { images } from './images';
 
 let mainWindow: BrowserWindow | null = null;
 export let settingWindow: BrowserWindow | null = null;
@@ -30,8 +31,7 @@ if (process.env.NODE_ENV === 'production') {
 require('electron-debug')();
 
 const init = async () => {
-  const iconActive = getAssetPath('icons/24x24.png');
-  const icon = getAssetPath('icons/24x24-0.7.png');
+  const icon = images.logo;
 
   tray = new Tray(icon, '0');
 
@@ -50,7 +50,6 @@ const init = async () => {
   ]);
   tray.setToolTip('Pastry');
   tray.setContextMenu(contextMenu);
-  tray.setPressedImage(iconActive);
 
   mainWindow = new BrowserWindow({
     show: false,
@@ -58,7 +57,7 @@ const init = async () => {
     x: 0,
     y: 0,
     simpleFullscreen: true,
-    icon: getAssetPath('icon.png'),
+    icon: images.logo,
     frame: false,
     transparent: true,
     alwaysOnTop: true,
@@ -73,7 +72,7 @@ const init = async () => {
     height: 600,
     minWidth: 800,
     minHeight: 600,
-    icon: getAssetPath('icon.png'),
+    icon: images.logo,
     title: 'Pastry',
     acceptFirstMouse: true,
     fullscreenable: false,
@@ -123,11 +122,6 @@ const init = async () => {
 
     menu.on('menu-will-close', () => {
       mainWindow?.hide();
-      tray?.setImage(icon);
-    });
-
-    menu.on('menu-will-show', () => {
-      tray?.setImage(iconActive);
     });
 
     menu.popup({
@@ -167,19 +161,20 @@ const showSystemAccessibilityPrompt = () => {
 };
 
 const addDemoFiles = () => {
-  const initTreeData = [
-    {
-      title: 'demo',
-      key: '0-0',
-      children: [{ title: 'console.log', key: 'demo-0', isLeaf: true }],
-    },
-  ];
   const needInit = !get('init');
   if (needInit) {
+    const now = Date.now();
+    const initTreeData = [
+      {
+        title: 'demo',
+        key: '0-0',
+        children: [{ title: 'console.log', key: `demo-${now}`, isLeaf: true }],
+      },
+    ];
     set('tree', JSON.stringify(initTreeData));
-    set('shortcut', '{"demo-0":0}');
+    set('shortcut', `{"demo-${now}":0}`);
     set(
-      'demo-0',
+      `demo-${now}`,
       `(selection, list, app) => {
   console.log(selection, list, app);
   return "Hello World";

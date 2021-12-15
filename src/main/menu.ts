@@ -5,8 +5,9 @@ import nanoid from 'nanoid';
 import lodash from 'lodash';
 import axios from 'axios';
 import dayjs from 'dayjs';
-import { copy, paste, safeParse, getAssetPath, getActiveApp } from './util';
+import { copy, paste, safeParse, getActiveApp } from './util';
 import { log } from './controller';
+import { images } from './images';
 
 const injectedVariables = {
   // useful libs
@@ -90,7 +91,7 @@ export default () => {
       : [
           {
             label: '粘贴最新',
-            icon: getAssetPath('menuItems/paste.png'),
+            icon: images.paste,
             click: paste,
           },
           { type: 'separator' },
@@ -99,7 +100,7 @@ export default () => {
     text.length && {
       label: 'Texts',
       type: 'submenu',
-      icon: getAssetPath('menuItems/text.png'),
+      icon: images.text,
       submenu: text.map((ele, index) => {
         const content = ele.text.trim();
         return {
@@ -116,7 +117,7 @@ export default () => {
     link.length && {
       label: 'Links',
       type: 'submenu',
-      icon: getAssetPath('menuItems/link.png'),
+      icon: images.link,
       submenu: link.map((ele, index) => {
         const content = ele.text.trim();
         return {
@@ -133,7 +134,7 @@ export default () => {
     image.length && {
       label: 'Images',
       type: 'submenu',
-      icon: getAssetPath('menuItems/image.png'),
+      icon: images.image,
       submenu: image.map((ele) => {
         const content = ele.image;
         const { width, height } = content.getSize();
@@ -157,7 +158,7 @@ export default () => {
     },
     { type: 'separator' },
     {
-      label: 'clear history',
+      label: 'Clear Histories',
       click: () => {
         clipboard.clear();
         manager.clear();
