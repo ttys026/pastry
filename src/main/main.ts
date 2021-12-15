@@ -132,8 +132,8 @@ const init = async () => {
 
     menu.popup({
       window: mainWindow!,
-      x: cursorPosition.x,
-      y: cursorPosition.y,
+      x: cursorPosition.x - display.bounds.x,
+      y: cursorPosition.y - display.bounds.y,
     });
   });
 
