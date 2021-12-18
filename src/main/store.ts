@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, ensureDirSync, removeSync } from 'fs-extra';
+import { readFileSync, writeFileSync, ensureDirSync, removeSync, remove as rm } from 'fs-extra';
 import { join } from 'path';
 import { app } from 'electron';
 
@@ -18,7 +18,14 @@ export const set = (key: string, value: string) => {
   return writeFileSync(join(storageDir, key), value);
 };
 
-export const remove = (key: string) => {
+export const remove = (key: string | string[]) => {
   ensureDirSync(storageDir);
+  if(Array.isArray(key)) {
+    return Promise.all(
+      key.map(ele => (
+        rm(join(storageDir, ele))
+      ))
+    )
+  }
   return removeSync(join(storageDir, key));
 };

@@ -136,8 +136,8 @@ cp.stdout.on('data', (chunk) => {
 export const getActiveApp = async () => {
   try {
     cp.stdin.write(`${binary} --no-screen-recording-permission\n\n`);
-    const timer = new Promise((_, rej) => setTimeout(rej, 500));
-    const active = await Promise.race([currentActiveLock.promise, timer]);
+    const timer = new Promise<string>((_, rej) => setTimeout(rej, 500));
+    const active = await Promise.race<string>([currentActiveLock.promise, timer]);
     currentActiveLock = new Deferred<string>();
     return active;
   } catch (e) {

@@ -20,8 +20,9 @@ import { get, set } from './store';
 import { images } from './images';
 
 let mainWindow: BrowserWindow | null = null;
-export let settingWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
+export let settingWindow: BrowserWindow | null = null;
+export let settingsInMemory = [];
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -30,15 +31,70 @@ if (process.env.NODE_ENV === 'production') {
 
 require('electron-debug')();
 
-const init = async () => {
-  const icon = images.logo;
+const getAutoLaunchState = () => {
+  const { openAtLogin } = app.getLoginItemSettings();
+  return openAtLogin;
+};
 
-  tray = new Tray(icon, '0');
+const toggleAutoLaunch = () => {
+  const enable = getAutoLaunchState();
+  app.setLoginItemSettings({
+    openAsHidden: true,
+    openAtLogin: !enable,
+  });
+  buildTrayMenu();
+};
 
+const getSettings = () => {
+  settingsInMemory = JSON.parse(get('settings') || '[]');
+  return settingsInMemory;
+};
+
+const toggleSettings = (index: number) => {
+  settingsInMemory[index] = !settingsInMemory[index];
+  set('settings', JSON.stringify(settingsInMemory));
+};
+
+const buildTrayMenu = () => {
+  const settings = getSettings();
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Make Doughs', click: () => settingWindow?.show() },
     { type: 'separator' },
     { label: 'Clear Histories', click: () => manager.clear() },
+    { type: 'separator' },
+    {
+      type: 'submenu',
+      label: 'Settings',
+      submenu: [
+        { label: 'Global Settings', enabled: false },
+        {
+          label: 'Launch at Startup',
+          click: toggleAutoLaunch,
+          type: 'checkbox',
+          checked: getAutoLaunchState(),
+        },
+        { type: 'separator' },
+        { label: 'Function Settings', enabled: false },
+        {
+          label: 'Enable Selection as Argument',
+          click: () => toggleSettings(0),
+          type: 'checkbox',
+          checked: settings[0] || false,
+        },
+        {
+          label: 'Enable Histroy as Argument',
+          click: () => toggleSettings(1),
+          type: 'checkbox',
+          checked: settings[1] || false,
+        },
+        {
+          label: 'Enable Active App as Argument',
+          click: () => toggleSettings(2),
+          type: 'checkbox',
+          checked: settings[2] || false,
+        },
+      ],
+    },
     { type: 'separator' },
     {
       label: 'Quit Pastry',
@@ -48,8 +104,16 @@ const init = async () => {
       },
     },
   ]);
-  tray.setToolTip('Pastry');
   tray.setContextMenu(contextMenu);
+};
+
+const init = async () => {
+  const icon = images.logo;
+
+  tray = new Tray(icon, '0');
+
+  buildTrayMenu();
+  tray.setToolTip('Pastry');
 
   mainWindow = new BrowserWindow({
     show: false,
@@ -163,6 +227,7 @@ const showSystemAccessibilityPrompt = () => {
 const addDemoFiles = () => {
   const needInit = !get('init');
   if (needInit) {
+    set('settings', '[true, true, true]');
     const now = Date.now();
     const initTreeData = [
       {

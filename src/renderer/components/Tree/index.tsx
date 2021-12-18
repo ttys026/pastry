@@ -119,9 +119,7 @@ export default (props: Props) => {
               parent: (parent) => {
                 removeContent(selectedKeyRef.current);
                 if (isFakeRoot(parent)) {
-                  parent.children.forEach((ele) =>
-                    removeContent(ele.key as string)
-                  );
+                  removeContent(parent.children.map(ele => ele.key as string))
                 }
                 parent.children.splice(i, 1);
               },

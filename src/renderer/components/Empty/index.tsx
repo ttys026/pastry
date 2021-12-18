@@ -121,7 +121,7 @@ export default (props: Props) => {
 
   return selected ? (
     <div className="intro">
-      <div style={{ width: 500 }}>
+      <div style={{ width: 500, maxWidth: '50%' }}>
         <div style={{ fontSize: 28 }}>
           <FolderOpenOutlined /> {selected?.title}
         </div>
@@ -148,7 +148,7 @@ export default (props: Props) => {
     </div>
   ) : (
     <div className="intro">
-      <div style={{ width: 500 }}>
+      <div style={{ width: 500, maxWidth: '50%' }}>
         <div>
           dough(面团)是制作Pastry(糕点)的原料，由一段 javascript
           书写的代码组成，

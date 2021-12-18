@@ -13,7 +13,7 @@ ipcMain.handle(
   }
 );
 
-ipcMain.handle('removeData', async (_, key: string) => {
+ipcMain.handle('removeData', async (_, key: string | string[]) => {
   return storage.remove(key);
 });
 

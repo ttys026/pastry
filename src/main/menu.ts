@@ -7,6 +7,7 @@ import axios from 'axios';
 import dayjs from 'dayjs';
 import { copy, paste, safeParse, getActiveApp } from './util';
 import { log } from './controller';
+import { settingsInMemory } from './main';
 import { images } from './images';
 
 const injectedVariables = {
@@ -44,20 +45,32 @@ interface Item {
 }
 
 export const execScript = async (key: string) => {
+  const settings = settingsInMemory;
   manager.lock();
-  const previous = manager.get(0);
-  const list = manager.getHistories();
-  await copy();
-  let selection = clipboard.readText();
-  if (selection === previous?.text) {
-    selection = '';
+  let selection = '';
+  let list = [];
+  let active = '';
+  let previous = null;
+  if (settings[0]) {
+    previous = manager.get(0);
+    await copy();
+    selection = clipboard.readText();
+    if (selection === previous?.text) {
+      selection = '';
+    }
   }
-  log('info', `current selection: `, selection);
+  if (settings[1]) {
+    list = manager.getHistories();
+  }
+  if (settings[2]) {
+    active = await getActiveApp();
+  }
+
+  settings[0] && log('info', `current selection: `, selection);
   try {
     const content = get(key) || '() => ""';
     const script = run(content)();
-    const active = await getActiveApp();
-    log('info', `current active app: `, active);
+    settings[2] && log('info', `current active app: `, active);
     const res = await script(selection, list, active);
     log('info', `function execute succeed with response: `, res);
     clipboard.writeText(res);
@@ -67,7 +80,9 @@ export const execScript = async (key: string) => {
     log('info', `function execute failed with error: `, e);
     clipboard.writeText(e.message);
     await paste();
-    clipboard.write(previous);
+    if (settings[0]) {
+      clipboard.write(previous);
+    }
     manager.unlock();
   }
 };
