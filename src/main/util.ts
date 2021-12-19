@@ -1,9 +1,10 @@
 /* eslint import/prefer-default-export: off, import/no-mutable-exports: off */
 import { URL } from 'url';
-import { app } from 'electron';
+import { app, NativeImage } from 'electron';
 import { spawn } from 'child_process';
 import { keyboard, Key } from '@nut-tree/nut-js';
 import path from 'path';
+import { createWorker } from 'tesseract.js';
 
 class Deferred<T> {
   promise: Promise<T>;
@@ -35,18 +36,19 @@ export const paste = async () => {
   await keyboard.releaseKey(Key.LeftSuper, Key.V);
 };
 
-export let resolveHtmlPath: (htmlFileName: string) => string;
+export let resolveHtmlPath: (htmlFileName: string, search?: string) => string;
 
 if (process.env.NODE_ENV === 'development') {
   const port = process.env.PORT || 1212;
-  resolveHtmlPath = (htmlFileName: string) => {
+  resolveHtmlPath = (htmlFileName: string, search?: string) => {
     const url = new URL(`http://localhost:${port}`);
     url.pathname = htmlFileName;
+    url.search = search;
     return url.href;
   };
 } else {
-  resolveHtmlPath = (htmlFileName: string) => {
-    return `file://${path.resolve(__dirname, '../renderer/', htmlFileName)}`;
+  resolveHtmlPath = (htmlFileName: string, search?: string) => {
+    return `file://${path.resolve(__dirname, '../renderer/', htmlFileName)}?${search}`;
   };
 }
 
@@ -104,7 +106,7 @@ const RESOURCES_PATH = app.isPackaged
   ? path.join(process.resourcesPath, 'assets')
   : path.join(__dirname, '../../assets');
 
-  const RELEASE_PATH = app.isPackaged
+const RELEASE_PATH = app.isPackaged
   ? path.join(process.resourcesPath, 'release', 'lib')
   : path.join(__dirname, '../../release/lib');
 
@@ -127,20 +129,52 @@ cp.stdout.on('data', (chunk) => {
   } catch (e) {
     return '';
   }
-})
+});
 
 /**
  * use the binary from https://github.com/sindresorhus/active-win
- * @returns 
+ * @returns
  */
 export const getActiveApp = async () => {
   try {
     cp.stdin.write(`${binary} --no-screen-recording-permission\n\n`);
     const timer = new Promise<string>((_, rej) => setTimeout(rej, 500));
-    const active = await Promise.race<string>([currentActiveLock.promise, timer]);
+    const active = await Promise.race<string>([
+      currentActiveLock.promise,
+      timer,
+    ]);
     currentActiveLock = new Deferred<string>();
     return active;
   } catch (e) {
     return '';
   }
-}
+};
+
+const worker = createWorker({
+  // cachePath: path.join(app.getPath('cache'), 'lang-data'),
+  cachePath: getReleasePath('lang-data'),
+  logger: (m) => console.log(m),
+});
+
+export const initOcr = async () => {
+  await worker.load();
+  process.env.TESSDATA_PREFIX = getReleasePath('lang-data');
+  await worker.loadLanguage('eng');
+  await worker.loadLanguage('chi_sim_vert');
+  await worker.loadLanguage('chi_sim');
+  await worker.initialize('eng');
+  await worker.initialize('chi_sim_vert');
+  await worker.initialize('chi_sim');
+  return async () => {
+    await worker.terminate();
+  };
+};
+
+// TODO: speed up for big image;
+export const ocr = async (image: NativeImage) => {
+  const buffer = image.toPNG();
+  const {
+    data: { text },
+  } = await worker.recognize(buffer);
+  return text;
+};

@@ -16,6 +16,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@nut-tree/nut-js": "1.7.1-next.20211203210108"
+    "@nut-tree/nut-js": "1.7.1-next.20211203210108",
+    "tesseract.js": "^2.1.5"
   }
 }

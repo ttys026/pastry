@@ -1,4 +1,7 @@
 import { render } from 'react-dom';
-import App from './App';
+import Settings from './Pages/Settings';
+import Search from './Pages/Search';
 
-render(<App />, document.getElementById('root'));
+const isSetting = window.location.search.includes('setting')
+
+render(isSetting ? <Settings /> : <Search />, document.getElementById('root'));

@@ -7,7 +7,7 @@ import axios from 'axios';
 import dayjs from 'dayjs';
 import { copy, paste, safeParse, getActiveApp } from './util';
 import { log } from './controller';
-import { settingsInMemory } from './main';
+import { settingsInMemory, showSearchWindow } from './main';
 import { images } from './images';
 
 const injectedVariables = {
@@ -73,12 +73,12 @@ export const execScript = async (key: string) => {
     settings[2] && log('info', `current active app: `, active);
     const res = await script(selection, list, active);
     log('info', `function execute succeed with response: `, res);
-    clipboard.writeText(res);
+    clipboard.writeText(res || '');
     paste();
     manager.unlock();
   } catch (e) {
     log('info', `function execute failed with error: `, e);
-    clipboard.writeText(e.message);
+    clipboard.writeText(e.message || 'Execute Failed');
     await paste();
     if (settings[0]) {
       clipboard.write(previous);
@@ -96,13 +96,13 @@ export default () => {
   manager.refresh();
 
   const menu: any = [
+    {
+      label: '搜索',
+      icon: images.search,
+      click: () => showSearchWindow(),
+    },
     ...(!image.length && !text.length && !link.length
-      ? [
-          {
-            enabled: false,
-            label: '(空)',
-          },
-        ]
+      ? []
       : [
           {
             label: '粘贴最新',

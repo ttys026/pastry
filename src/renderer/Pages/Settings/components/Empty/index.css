@@ -1,0 +1,55 @@
+.intro {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-direction: column;
+  padding: 48px 24px;
+  overflow: auto;
+}
+
+.extra {
+  padding-left: 8px;
+  cursor: help;
+}
+
+.demo {
+  padding: 12px;
+  margin: 12px 0;
+  border-radius: 4px;
+  background-color: rgb(40, 44, 52) !important;
+  color: white;
+}
+
+.demo *::selection {
+  background: rgba(255,255,255,0.25)!important;
+  color: unset !important;
+}
+
+.demo .cm-operator {
+  color: rgb(86, 182, 194) !important;
+}
+
+.demo .cm-string {
+  color: rgb(152, 195, 121) !important;
+}
+
+.demo .cm-def {
+  color: rgb(229, 192, 123) !important;
+}
+
+.demo .cm-variable {
+  color: rgb(224, 108, 117) !important;
+}
+.demo .cm-property {
+  color: rgb(86, 182, 194) !important;
+}
+
+.intro .shortcut {
+  margin: 0 4px;
+  padding: 0 4px;
+  background-color: rgba(0, 0, 0, 0.06);
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}

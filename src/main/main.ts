@@ -15,19 +15,24 @@ import {
 import { log } from './controller';
 import getMenu, { execScript } from './menu';
 import { initClipboardListener, manager } from './clipboardManager';
-import { resolveHtmlPath, safeParse } from './util';
+import { resolveHtmlPath, safeParse, initOcr } from './util';
 import { get, set } from './store';
 import { images } from './images';
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 export let settingWindow: BrowserWindow | null = null;
+export let searchWindow: BrowserWindow | null = null;
 export let settingsInMemory = [];
 
-if (process.env.NODE_ENV === 'production') {
-  const sourceMapSupport = require('source-map-support');
-  sourceMapSupport.install();
-}
+export const showSearchWindow = () => {
+  const cursorPosition = screen.getCursorScreenPoint();
+  const display = screen.getDisplayNearestPoint(cursorPosition);
+  searchWindow.setAlwaysOnTop(true, 'screen-saver');
+  // display.workArea
+  searchWindow.setBounds(display.workArea);
+  searchWindow.show();
+};
 
 require('electron-debug')();
 
@@ -128,6 +133,26 @@ const init = async () => {
     focusable: false,
   });
 
+  searchWindow = new BrowserWindow({
+    show: false,
+    paintWhenInitiallyHidden: true,
+    center: true,
+    acceptFirstMouse: true,
+    simpleFullscreen: true,
+    useContentSize: true,
+    icon: images.logo,
+    frame: false,
+    maximizable: false,
+    resizable: false,
+    transparent: true,
+    alwaysOnTop: true,
+    focusable: true,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: false,
+    },
+  });
+
   settingWindow = new BrowserWindow({
     show: false,
     paintWhenInitiallyHidden: true,
@@ -155,11 +180,22 @@ const init = async () => {
     cancelClipboardListener();
   });
 
-  settingWindow.loadURL(resolveHtmlPath('index.html'));
+  settingWindow.loadURL(resolveHtmlPath('index.html', 'setting'));
+  searchWindow.loadURL(resolveHtmlPath('index.html'));
+
+  settingWindow.on('show', () => {
+    app.dock.show();
+  });
 
   settingWindow.on('close', (e) => {
     e.preventDefault();
     settingWindow?.hide();
+    app.dock.hide();
+  });
+
+  searchWindow.on('close', (e) => {
+    e.preventDefault();
+    searchWindow?.hide();
   });
 
   settingWindow.webContents.on('new-window', function (e, url) {
@@ -193,6 +229,10 @@ const init = async () => {
       x: cursorPosition.x - display.bounds.x,
       y: cursorPosition.y - display.bounds.y,
     });
+  });
+
+  globalShortcut.register('Command+`', () => {
+    showSearchWindow();
   });
 
   Array(10)
@@ -256,5 +296,6 @@ app
     init();
     showSystemAccessibilityPrompt();
     addDemoFiles();
+    initOcr();
   })
   .catch(console.error);

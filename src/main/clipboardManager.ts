@@ -1,12 +1,14 @@
 import { clipboard, nativeImage, NativeImage } from 'electron';
-import { isUri, safeParse } from './util';
+import { isUri, safeParse, ocr } from './util';
 import { get, set } from './store';
 
 type Data = {
   text?: string;
   html?: string;
   image?: NativeImage;
+  // for image only
   dataUrl?: string;
+  ocr?: string;
 } | null;
 
 const isSameData = (a: Data, b: Data) => {
@@ -27,27 +29,27 @@ class ClipboardManager {
 
   constructor(props?: { html?: boolean; history?: Data[] }) {
     this.html = props?.html || false;
-    this.history = (props.history || []).map(ele => {
-      if(ele.dataUrl) {
+    this.history = (props.history || []).map((ele) => {
+      if (ele.dataUrl) {
         return {
           ...ele,
-          image: nativeImage.createFromDataURL(ele.dataUrl)
-        }
+          image: nativeImage.createFromDataURL(ele.dataUrl),
+        };
       }
       return ele;
     });
   }
 
   private persist = () => {
-     const storeData = this.history.map(ele => {
-      if(!ele.image) {
+    const storeData = this.history.map((ele) => {
+      if (!ele.image) {
         return ele;
       }
       return {
         ...ele,
         dataUrl: ele.image.toDataURL(),
-      }
-    })
+      };
+    });
     set('history', JSON.stringify(storeData));
   };
 
@@ -63,12 +65,39 @@ class ClipboardManager {
     }
   };
 
+  public ocrImage = async () => {
+    const tasks = this.history.filter((ele) => {
+      const needParse = ele.image && !ele.ocr;
+      if (needParse) {
+        ele.ocr = 'loading';
+      }
+
+      return needParse;
+    });
+
+    const ocrs = await Promise.all(
+      tasks.map(async (ele) => {
+        return {
+          ...ele,
+          ocr: await ocr(ele.image),
+        };
+      })
+    );
+
+    ocrs.forEach((ele) => {
+      const found = this.history.findIndex((i) => isSameData(i, ele));
+      if (found !== -1) {
+        this.history[found].ocr = ele.ocr;
+      }
+    });
+  };
+
   /**
    * retrieve the current clipboard data
    * @returns clipboard data
    */
-  public retrieve(): Data {
-    const clipboardInfo = {};
+  public retrieve() {
+    const clipboardInfo: Data = {};
     const formats = clipboard.availableFormats();
     if (!formats.length) {
       return null;
@@ -190,7 +219,9 @@ export const initClipboardListener = () => {
     if (data) {
       manager.add(data);
     }
+    manager.ocrImage();
   };
+
   const timer = setInterval(listener, 750);
 
   return () => {

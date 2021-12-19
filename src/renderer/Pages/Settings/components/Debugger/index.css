@@ -1,0 +1,23 @@
+.logItem {
+  display: flex;
+  align-items: center;
+  /* margin-bottom: 8px; */
+  border-bottom: 1px solid rgba(0,0,0,0.2);
+  padding: 6px 16px;
+  width: 100%;
+}
+
+.logTree {
+  display: flex;
+  align-items: center;
+}
+
+.logTree > * {
+  margin-left: 8px !important;
+}
+
+.logItem * {
+  font-size: 12px !important;
+  line-height: 1.0 !important;
+  background-color: transparent !important;
+}

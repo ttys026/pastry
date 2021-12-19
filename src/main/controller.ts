@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron';
-import { settingWindow } from './main';
+import { searchWindow, settingWindow } from './main';
 import * as storage from './store';
 
 ipcMain.handle('getData', async (_, key: string) => {
@@ -12,6 +12,8 @@ ipcMain.handle(
     return storage.set(key, data);
   }
 );
+
+ipcMain.handle('hide', () => searchWindow.hide());
 
 ipcMain.handle('removeData', async (_, key: string | string[]) => {
   return storage.remove(key);
