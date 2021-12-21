@@ -10,13 +10,20 @@ import type { DataNode } from 'rc-tree/lib/interface';
 import EditableTitle from './EditableTitle';
 import { findChild, isFakeRoot } from '../../../../utils';
 import ShortcutModal from '../ShortcutModal';
-import { removeContent } from '../../../../services';
+import { removeContent, setContent } from '../../../../services';
 
 const getNewNode = () => ({
   isLeaf: true,
   title: 'new scriptlet',
   key: `file-${Date.now()}`,
 });
+
+const defaultContent = `/** @type {(selection: string, histories: string[], currentApp: string) => string} */
+(selection, histories, currentApp) => {
+  return "Hello World";
+}
+
+`;
 
 const getNewFolder = () => ({
   children: [],
@@ -62,6 +69,7 @@ export default (props: Props) => {
 
   useEffect(() => {
     const addFileListener = () => {
+      const newFile = getNewNode();
       setTreeData((s) => {
         const temp = [...s];
         return findChild(
@@ -74,8 +82,6 @@ export default (props: Props) => {
           },
           (i) => ({
             parent: (parent) => {
-              const newFile = getNewNode();
-              setSelectedKeys([newFile.key]);
               if (isFakeRoot(parent)) {
                 setExpandedKeys((k) => [...k, parent.children[i].key]);
                 parent.children[i].children.push(newFile);
@@ -84,9 +90,24 @@ export default (props: Props) => {
                 parent.children.push(newFile);
               }
             },
+            error: () => {
+              if (temp.length > 0) {
+                const parent = temp[temp.length - 1];
+                parent.children.push(newFile);
+                setExpandedKeys((k) => [...k, parent.key]);
+              } else {
+                const parent = getNewFolder();
+                parent.children.push(newFile);
+                temp.push(parent);
+                setExpandedKeys((k) => [...k, parent.key]);
+              }
+            },
           })
         );
       });
+        setContent(newFile.key, defaultContent).then(() => {
+          setSelectedKeys([newFile.key]);
+        });
     };
 
     const addFolderListener = () => {
@@ -119,7 +140,9 @@ export default (props: Props) => {
               parent: (parent) => {
                 removeContent(selectedKeyRef.current);
                 if (isFakeRoot(parent)) {
-                  removeContent(parent.children.map(ele => ele.key as string))
+                  removeContent(
+                    parent.children.map((ele) => ele.key as string)
+                  );
                 }
                 parent.children.splice(i, 1);
               },
@@ -229,7 +252,7 @@ export default (props: Props) => {
             <FileOutlined />
           );
         }}
-        expandedKeys={expandedKeys}
+        expandedKeys={[...new Set(expandedKeys)]}
         draggable={{ icon: false }}
         titleRender={(node) => {
           return (

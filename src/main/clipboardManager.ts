@@ -58,8 +58,11 @@ class ClipboardManager {
       case type.includes('/html') && this.html:
         return { type: 'html', value: clipboard.readHTML() };
       case type.includes('image/'):
-        const nativeImage = clipboard.readImage();
-        return { type: 'image', value: nativeImage };
+        return { type: 'image', value: clipboard.readImage() };
+      // TODO: GIF paste
+      case type.includes('uri-list'):
+        const dataUrl = clipboard.readImage().toDataURL();
+        return { type: 'image', value: nativeImage.createFromDataURL(dataUrl) };
       default:
         return { type: 'text', value: clipboard.readText() };
     }

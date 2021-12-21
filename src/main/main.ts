@@ -280,10 +280,11 @@ const addDemoFiles = () => {
     set('shortcut', `{"demo-${now}":0}`);
     set(
       `demo-${now}`,
-      `(selection, list, app) => {
-  console.log(selection, list, app);
+      `/** @type {(selection: string, histories: string[], currentApp: string) => string} */
+(selection, histories, currentApp) => {
   return "Hello World";
 }
+
 `
     );
     set('init', 'true');
