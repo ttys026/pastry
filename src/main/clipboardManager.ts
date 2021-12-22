@@ -26,6 +26,7 @@ class ClipboardManager {
   private limit = 30;
   private isLock = false;
   private html = false;
+  public updateTime = Date.now();
 
   constructor(props?: { html?: boolean; history?: Data[] }) {
     this.html = props?.html || false;
@@ -60,9 +61,21 @@ class ClipboardManager {
       case type.includes('image/'):
         return { type: 'image', value: clipboard.readImage() };
       // TODO: GIF paste
-      case type.includes('uri-list'):
-        const dataUrl = clipboard.readImage().toDataURL();
-        return { type: 'image', value: nativeImage.createFromDataURL(dataUrl) };
+      case type.includes('uri-list'): {
+        const text = clipboard.readText();
+        if (text) {
+          return { type: 'text', value: text };
+        }
+        try {
+          const dataUrl = clipboard.readImage().toDataURL();
+          return {
+            type: 'image',
+            value: nativeImage.createFromDataURL(dataUrl),
+          };
+        } catch (e) {
+          return { type: 'text', value: '' };
+        }
+      }
       default:
         return { type: 'text', value: clipboard.readText() };
     }
@@ -128,6 +141,7 @@ class ClipboardManager {
     );
     if (foundIndex !== -1) {
       this.use(foundIndex);
+      this.updateTime = Date.now();
       this.persist();
       return;
     }
@@ -135,6 +149,7 @@ class ClipboardManager {
     if (length > this.limit) {
       this.history = this.history.slice(0, this.limit);
     }
+    this.updateTime = Date.now();
     this.persist();
   }
 

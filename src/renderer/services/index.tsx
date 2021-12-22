@@ -17,3 +17,10 @@ export const setContent = async (key: string, data: string) => {
 export const removeContent = async (key: string | string[]) => {
   return await window.ipcRenderer.invoke('removeData', key);
 };
+
+export const getHistories = async () => {
+  return await window.ipcRenderer.invoke('getHistories');
+};
+export const copyItem = async (data: any) => {
+  return await window.ipcRenderer.invoke('copyItem', data);
+};
