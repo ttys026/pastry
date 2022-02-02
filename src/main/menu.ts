@@ -63,7 +63,7 @@ export const execScript = async (key: string) => {
     list = manager.getHistories();
   }
   if (settings[2]) {
-    active = await getActiveApp();
+    active = getActiveApp();
   }
 
   settings[0] && log('info', `current selection: `, selection);

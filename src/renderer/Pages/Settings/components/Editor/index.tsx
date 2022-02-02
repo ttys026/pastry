@@ -83,6 +83,7 @@ export default function App(props: Props) {
 
   useEffect(() => {
     editor.current?.setValue(props.initialValue || '');
+    editor.current?.getAction('editor.foldAllBlockComments').run();
   }, [props.initialValue, props.selectedKey]);
 
   return <div ref={ref} id="editor" />;

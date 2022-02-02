@@ -1,25 +1,10 @@
 /* eslint import/prefer-default-export: off, import/no-mutable-exports: off */
 import { URL } from 'url';
 import { app, NativeImage } from 'electron';
-import { spawn } from 'child_process';
+import { execFileSync } from 'child_process';
 import { keyboard, Key } from '@nut-tree/nut-js';
 import path from 'path';
 import { createWorker } from 'tesseract.js';
-
-class Deferred<T> {
-  promise: Promise<T>;
-
-  resolve!: (value: T | PromiseLike<T>) => void;
-
-  reject!: (reason?: any) => void;
-
-  constructor() {
-    this.promise = new Promise((resolve, reject) => {
-      this.resolve = resolve;
-      this.reject = reject;
-    });
-  }
-}
 
 const delay = (ms: number) => {
   return new Promise((res) => setTimeout(res, ms));
@@ -118,33 +103,17 @@ export const getReleasePath = (...paths: string[]): string => {
   return path.join(RELEASE_PATH, ...paths);
 };
 
-let currentActiveLock = new Deferred<string>();
-const cp = spawn('bash');
 const binary = getReleasePath('activeApp');
-
-cp.stdout.on('data', (chunk) => {
-  try {
-    const { owner } = JSON.parse(chunk.toString());
-    return currentActiveLock.resolve(owner.path);
-  } catch (e) {
-    return '';
-  }
-});
 
 /**
  * use the binary from https://github.com/sindresorhus/active-win
  * @returns
  */
-export const getActiveApp = async () => {
+export const getActiveApp = () => {
   try {
-    cp.stdin.write(`${binary} --no-screen-recording-permission\n\n`);
-    const timer = new Promise<string>((_, rej) => setTimeout(rej, 500));
-    const active = await Promise.race<string>([
-      currentActiveLock.promise,
-      timer,
-    ]);
-    currentActiveLock = new Deferred<string>();
-    return active;
+    const active = execFileSync(binary, ['--no-screen-recording-permission']);
+    const { owner } = JSON.parse(active.toString());
+    return owner.path;
   } catch (e) {
     return '';
   }
@@ -153,12 +122,13 @@ export const getActiveApp = async () => {
 const worker = createWorker({
   // cachePath: path.join(app.getPath('cache'), 'lang-data'),
   cachePath: getReleasePath('lang-data'),
+  langPath: getReleasePath('lang-data'),
   logger: (m) => console.log(m),
 });
 
 export const initOcr = async () => {
-  await worker.load();
   process.env.TESSDATA_PREFIX = getReleasePath('lang-data');
+  await worker.load();
   await worker.loadLanguage('eng');
   await worker.loadLanguage('chi_sim_vert');
   await worker.loadLanguage('chi_sim');

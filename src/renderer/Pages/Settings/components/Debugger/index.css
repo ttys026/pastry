@@ -10,6 +10,7 @@
 .logTree {
   display: flex;
   align-items: center;
+  word-break: break-all;
 }
 
 .logTree > * {

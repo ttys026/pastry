@@ -21,6 +21,7 @@ import { images } from './images';
 
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
+let shouldExit = false;
 export let settingWindow: BrowserWindow | null = null;
 export let searchWindow: BrowserWindow | null = null;
 export let settingsInMemory = [];
@@ -28,13 +29,15 @@ export let settingsInMemory = [];
 export const showSearchWindow = () => {
   const cursorPosition = screen.getCursorScreenPoint();
   const display = screen.getDisplayNearestPoint(cursorPosition);
-  searchWindow.setAlwaysOnTop(true, 'screen-saver');
-  // display.workArea
-  searchWindow.setBounds(display.workArea);
+  searchWindow.setAlwaysOnTop(true, 'floating');
+  const { width, height, x, y } = display.workArea;
+  const windowX = x + (width - 300) / 2;
+  const windowY = y + (height - 240) / 2;
+  searchWindow.setBounds({ x: windowX, y: windowY, width: 300, height: 240 });
   searchWindow.show();
 };
 
-require('electron-debug')();
+// require('electron-debug')();
 
 const getAutoLaunchState = () => {
   const { openAtLogin } = app.getLoginItemSettings();
@@ -105,7 +108,8 @@ const buildTrayMenu = () => {
       label: 'Quit Pastry',
       click: () => {
         settingWindow?.destroy();
-        app.quit();
+        shouldExit = true;
+        app.exit();
       },
     },
   ]);
@@ -144,7 +148,7 @@ const init = async () => {
     frame: false,
     maximizable: false,
     resizable: false,
-    transparent: true,
+    transparent: false,
     alwaysOnTop: true,
     focusable: true,
     webPreferences: {
@@ -188,13 +192,21 @@ const init = async () => {
   });
 
   settingWindow.on('close', (e) => {
-    e.preventDefault();
+    if (!shouldExit) {
+      e.preventDefault();
+    }
     settingWindow?.hide();
     app.dock.hide();
   });
 
+  searchWindow.on('blur', () => {
+    searchWindow?.hide();
+  })
+
   searchWindow.on('close', (e) => {
-    e.preventDefault();
+    if (!shouldExit) {
+      e.preventDefault();
+    }
     searchWindow?.hide();
   });
 
@@ -267,12 +279,12 @@ const showSystemAccessibilityPrompt = () => {
 const addDemoFiles = () => {
   const needInit = !get('init');
   if (needInit) {
-    set('settings', '[true, true, true]');
+    set('settings', JSON.stringify(Array(3).fill(true)));
     const now = Date.now();
     const initTreeData = [
       {
         title: 'demo',
-        key: '0-0',
+        key: `0-${now}`,
         children: [{ title: 'console.log', key: `demo-${now}`, isLeaf: true }],
       },
     ];

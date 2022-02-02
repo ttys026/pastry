@@ -1,4 +1,4 @@
-import { Input } from 'antd';
+import { Empty, Input } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { useEffect, useRef, useState } from 'react';
 import { getHistories, copyItem } from '../../services';
@@ -31,22 +31,24 @@ export default () => {
   const [currentList, setCurrentList] = useState(clipboardInfo.list);
 
   useEffect(() => {
-    getHistories().then((res) => {
-      if (res.updateTime !== clipboardInfo.updateTime) {
-        const newList = res.list.map((ele) => {
-          return {
-            ...ele,
-            ocr: (ele.ocr || '').replace(/\s+/g, ''),
-          };
-        });
-        setClipboardInfo({ updateTime: res.updateTime, list: newList });
-      }
-    });
-  }, []);
+    const updateList = () =>
+      getHistories().then((res) => {
+        if (res.updateTime !== clipboardInfo.updateTime) {
+          const newList = res.list.map((ele) => {
+            return {
+              ...ele,
+              ocr: (ele.ocr || '').replace(/\s+/g, ''),
+            };
+          });
+          setClipboardInfo({ updateTime: res.updateTime, list: newList });
+        }
+      });
 
-  useEffect(() => {
+    updateList();
+
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
+        updateList();
         ref.current?.focus?.();
         container.current?.scrollTo?.(0, 0);
         requestAnimationFrame(() => {
@@ -63,13 +65,14 @@ export default () => {
   useEffect(() => {
     setCurrentList(
       clipboardInfo.list.filter((ele) => {
-        if (!search) {
+        const keyword = search.replace(/\s+/g, '');
+        if (!keyword) {
           return true;
         }
         if (
-          ele.text?.toLowerCase()?.includes(search?.toLowerCase()) ||
-          ele.html?.toLowerCase()?.includes(search?.toLowerCase()) ||
-          ele.ocr?.toLowerCase()?.includes(search?.toLowerCase())
+          ele.text?.toLowerCase()?.includes(keyword?.toLowerCase()) ||
+          ele.html?.toLowerCase()?.includes(keyword?.toLowerCase()) ||
+          ele.ocr?.toLowerCase()?.includes(keyword?.toLowerCase())
         ) {
           return true;
         }
@@ -80,33 +83,24 @@ export default () => {
 
   console.log(currentList);
 
+  const hideWindow = () => {
+    setSearch('');
+    setKey((k) => k + 1);
+    window.ipcRenderer.invoke('hide');
+  };
+
   return (
     <div
-      onMouseDown={(e) => {
-        if ((e.target as any).tagName !== 'INPUT') {
-          setSearch('');
-          setKey((k) => k + 1);
-          window.ipcRenderer.invoke('hide');
-        }
-      }}
       style={{
-        background: 'transparent',
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        height: '100%',
-        width: '100%',
+        width: 'fit-content',
       }}
     >
-      <div style={{ width: 300, marginTop: 200, borderRadius: 12 }}>
+      <div style={{ width: 300, borderRadius: 12, overflow: 'hidden' }}>
         <Input
           key={key}
           spellCheck="false"
           style={{
-            borderBottomLeftRadius: currentList.length === 0 ? 8 : 0,
-            borderBottomRightRadius: currentList.length === 0 ? 8 : 0,
-            borderTopLeftRadius: 8,
-            borderTopRightRadius: 8,
+            borderRadius: 0,
             outline: 'none',
             boxShadow: 'none',
             borderColor: '#e8e8e8',
@@ -124,24 +118,27 @@ export default () => {
           ref={container}
           style={{
             maxHeight: 200,
+            height: 'fit-content',
             overflow: 'auto',
             background: 'white',
-            borderRadius: 8,
-            borderTopLeftRadius: 0,
-            borderTopRightRadius: 0,
             userSelect: 'none',
           }}
         >
+          {
+            !currentList.length && <Empty description='没有结果' image={Empty.PRESENTED_IMAGE_SIMPLE} />
+          }
           {currentList.map((item, index) =>
             !item.image ? (
               <div
                 key={item.text + item.html + index}
                 onClick={() => {
                   copyItem(item);
+                  hideWindow();
                 }}
                 style={{
                   padding: '16px',
                   fontSize: 14,
+                  wordBreak: 'break-all',
                   borderBottom:
                     index === currentList.length ? 'none' : '1px solid #e8e8e8',
                   cursor: 'pointer',
@@ -155,6 +152,7 @@ export default () => {
                 onClick={(e) => {
                   e.preventDefault();
                   copyItem(item);
+                  hideWindow();
                 }}
                 style={{
                   padding: '16px',
@@ -164,7 +162,7 @@ export default () => {
                   cursor: 'pointer',
                 }}
               >
-                <img width={268} src={item.image.toDataURL()} />
+                <img width="100%" src={item.image.toDataURL()} />
               </div>
             )
           )}

@@ -18,7 +18,18 @@ const getNewNode = () => ({
   key: `file-${Date.now()}`,
 });
 
-const defaultContent = `/** @type {(selection: string, histories: string[], currentApp: string) => string} */
+const defaultContent = `/**
+ * @typedef HistoryItem
+ * @type {object}
+ * @property {string} text - The text content of clipboard record.
+ * @property {string} html - The HTML content of clipboard record.
+ * @property {NativeImage} image - The image content.
+ * @property {string} ocr - The ocr content of image.
+ */
+/** 
+ * @type 
+ * {(selection: string, histories: HistoryItem[], currentApp: string) => string} 
+ */
 (selection, histories, currentApp) => {
   return "Hello World";
 }
