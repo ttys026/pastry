@@ -15,5 +15,6 @@ export default defineConfig({
       path: 'https://github.com/ttys026/pastry',
     },
   ],
+  404: true,
   // more config: https://d.umijs.org/config
 });
