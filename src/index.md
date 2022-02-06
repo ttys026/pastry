@@ -8,7 +8,7 @@ hero:
     - text: Documentation
       link: /document
     - text: Download
-      link: https://github.com/ttys026/pastry/releases/tag/v1.0.0
+      link: https://github.com/ttys026/pastry/releases
 features:
   - title: Clipboard Manage
     icon: https://cdn-ty.oss-cn-hongkong.aliyuncs.com/pastry1.png
