@@ -203,7 +203,6 @@
     "ts-jest": "^27.0.7",
     "ts-loader": "^9.2.6",
     "ts-node": "^10.4.0",
-    "typescript": "^4.4.4",
     "url-loader": "^4.1.1",
     "webpack": "^5.60.0",
     "webpack-bundle-analyzer": "^4.5.0",
@@ -233,7 +232,8 @@
     "react-inspector": "^5.1.1",
     "react-simple-code-editor": "^0.11.0",
     "react-split-pane": "^0.1.92",
-    "regenerator-runtime": "^0.13.9"
+    "regenerator-runtime": "^0.13.9",
+    "typescript": "^4.8.4"
   },
   "devEngines": {
     "node": ">=14.x",

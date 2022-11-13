@@ -22,6 +22,7 @@ import { images } from './images';
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let shouldExit = false;
+let modulesDir = '';
 export let settingWindow: BrowserWindow | null = null;
 export let searchWindow: BrowserWindow | null = null;
 export let settingsInMemory = [];
@@ -56,6 +57,14 @@ const toggleAutoLaunch = () => {
 const getSettings = () => {
   settingsInMemory = JSON.parse(get('settings') || '[]');
   return settingsInMemory;
+};
+
+export const getModulesDir = () => {
+  if (modulesDir) {
+    return modulesDir;
+  }
+  modulesDir = get('modules_dir') || '~/.pastry/node_modules';
+  return modulesDir;
 };
 
 const toggleSettings = (index: number) => {
@@ -201,7 +210,7 @@ const init = async () => {
 
   searchWindow.on('blur', () => {
     searchWindow?.hide();
-  })
+  });
 
   searchWindow.on('close', (e) => {
     if (!shouldExit) {

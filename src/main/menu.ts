@@ -1,42 +1,16 @@
 import { Menu, clipboard } from 'electron';
 import { manager } from './clipboardManager';
 import { get } from './store';
-import nanoid from 'nanoid';
-import lodash from 'lodash';
-import axios from 'axios';
-import dayjs from 'dayjs';
+import { run } from './runner';
 import { copy, paste, safeParse, getActiveApp } from './util';
 import { log } from './controller';
 import { settingsInMemory, showSearchWindow } from './main';
 import { images } from './images';
 
-const injectedVariables = {
-  // useful libs
-  ...nanoid,
-  _: lodash,
-  lodash,
-  axios,
-  dayjs,
-  // banned for safety reason
-  global: null,
-  require: new ReferenceError('require is not defined'),
-  process: new ReferenceError('process is not defined'),
-  console: Object.keys(console).reduce((acc, key) => {
-    acc[key] = (...args: string[]) =>
-      log(key as keyof Console, `script console.${key}:`, args);
-    return acc;
-  }, {}),
-};
 
 const ellipsis = (content: string) => {
   return content.length > 20 ? content.slice(0, 19) + '...' : content;
 };
-
-const run = (content: string) =>
-  new Function(
-    ...Object.keys(injectedVariables),
-    `return eval(${JSON.stringify(content)})`
-  ).bind(Object.create(null), ...Object.values(injectedVariables));
 
 interface Item {
   title: string;
@@ -69,9 +43,9 @@ export const execScript = async (key: string) => {
   settings[0] && log('info', `current selection: `, selection);
   try {
     const content = get(key) || '() => ""';
-    const script = run(content)();
+    const script = await run(content);
     settings[2] && log('info', `current active app: `, active);
-    const res = await script(selection, list, active);
+    const res = (await script(selection, list, active)).toString();
     log('info', `function execute succeed with response: `, res);
     clipboard.writeText(res || '');
     paste();
