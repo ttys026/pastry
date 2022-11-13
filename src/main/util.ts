@@ -3,8 +3,9 @@ import { URL } from 'url';
 import { app, NativeImage } from 'electron';
 import { execFileSync } from 'child_process';
 import { keyboard, Key } from '@nut-tree/nut-js';
-import path from 'path';
-import { createWorker } from 'tesseract.js';
+import path, { join } from 'path';
+import { writeFile, rmSync } from 'fs-extra';
+import { tmpdir } from 'os';
 
 const delay = (ms: number) => {
   return new Promise((res) => setTimeout(res, ms));
@@ -33,7 +34,11 @@ if (process.env.NODE_ENV === 'development') {
   };
 } else {
   resolveHtmlPath = (htmlFileName: string, search?: string) => {
-    return `file://${path.resolve(__dirname, '../renderer/', htmlFileName)}?${search}`;
+    return `file://${path.resolve(
+      __dirname,
+      '../renderer/',
+      htmlFileName
+    )}?${search}`;
   };
 }
 
@@ -103,7 +108,8 @@ export const getReleasePath = (...paths: string[]): string => {
   return path.join(RELEASE_PATH, ...paths);
 };
 
-const binary = getReleasePath('activeApp');
+const activeApp = getReleasePath('activeApp');
+const macocr = getReleasePath('macocr');
 
 /**
  * use the binary from https://github.com/sindresorhus/active-win
@@ -111,7 +117,7 @@ const binary = getReleasePath('activeApp');
  */
 export const getActiveApp = () => {
   try {
-    const active = execFileSync(binary, ['--no-screen-recording-permission']);
+    const active = execFileSync(activeApp, ['--no-screen-recording-permission']);
     const { owner } = JSON.parse(active.toString());
     return owner.path;
   } catch (e) {
@@ -119,32 +125,17 @@ export const getActiveApp = () => {
   }
 };
 
-const worker = createWorker({
-  // cachePath: path.join(app.getPath('cache'), 'lang-data'),
-  cachePath: getReleasePath('lang-data'),
-  langPath: getReleasePath('lang-data'),
-  logger: (m) => console.log(m),
-});
-
-export const initOcr = async () => {
-  process.env.TESSDATA_PREFIX = getReleasePath('lang-data');
-  await worker.load();
-  await worker.loadLanguage('eng');
-  await worker.loadLanguage('chi_sim_vert');
-  await worker.loadLanguage('chi_sim');
-  await worker.initialize('eng');
-  await worker.initialize('chi_sim_vert');
-  await worker.initialize('chi_sim');
-  return async () => {
-    await worker.terminate();
-  };
-};
-
 // TODO: speed up for big image;
 export const ocr = async (image: NativeImage) => {
-  const buffer = image.toPNG();
-  const {
-    data: { text },
-  } = await worker.recognize(buffer);
-  return text;
+  try {
+    const tempName = join(tmpdir(), `pastry-${Math.random()}`);
+    await writeFile(tempName, image.toPNG());
+    const text = execFileSync(macocr, [tempName], { timeout: 0 }).toString('utf8');
+    rmSync(tempName);
+    console.log('done ocr with image', tempName, text);
+    return text;
+  } catch (e) {
+    console.log('has error', e);
+    return ''
+  }
 };

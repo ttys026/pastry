@@ -15,7 +15,7 @@ import {
 import { log } from './controller';
 import getMenu, { execScript } from './menu';
 import { initClipboardListener, manager } from './clipboardManager';
-import { resolveHtmlPath, safeParse, initOcr } from './util';
+import { resolveHtmlPath, safeParse } from './util';
 import { get, set } from './store';
 import { images } from './images';
 
@@ -309,6 +309,5 @@ app
     init();
     showSystemAccessibilityPrompt();
     addDemoFiles();
-    initOcr();
   })
   .catch(console.error);
