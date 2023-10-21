@@ -6,6 +6,7 @@ import {
   listenToClipboard,
 } from "tauri-plugin-clipboard-api";
 import { ocr } from "./ocr";
+import { appWindow } from "@tauri-apps/api/window";
 
 export interface ClipboardProps {
   onCopyImage: (base64: string) => void;
@@ -14,7 +15,14 @@ export interface ClipboardProps {
 }
 
 export const initShortcutListener = async () => {
-  await register("Command+1", () => {
+  await register("Command+`", async () => {
+    appWindow.setAlwaysOnTop(true);
+    if (await appWindow.isVisible()) {
+      appWindow.hide();
+    } else {
+      await appWindow.show();
+      appWindow.setFocus();
+    }
     console.log("Shortcut triggered");
   });
 

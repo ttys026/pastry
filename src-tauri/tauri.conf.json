@@ -1,7 +1,7 @@
 {
   "build": {
-    "beforeDevCommand": "pnpm dev",
-    "beforeBuildCommand": "pnpm build",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
     "devPath": "http://localhost:1420",
     "distDir": "../dist",
     "withGlobalTauri": false
@@ -48,6 +48,9 @@
       },
       "os": {
         "all": true
+      },
+      "window": {
+        "all": true
       }
     },
     "bundle": {
@@ -69,11 +72,17 @@
     "windows": [
       {
         "fullscreen": false,
-        "resizable": true,
-        "title": "tauri-app",
+        "resizable": false,
+        "closable": false,
+        "transparent": true,
+        "skipTaskbar": true,
+        "hiddenTitle": true,
+        "decorations": false,
+        "title": "Pastry",
         "width": 800,
         "height": 600
       }
-    ]
+    ],
+    "macOSPrivateApi": true
   }
 }

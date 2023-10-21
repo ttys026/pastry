@@ -1,4 +1,5 @@
-import { useRequest, useUnmount } from "ahooks";
+import { useMount, useRequest, useUnmount } from "ahooks";
+// import { hide } from "tauri-plugin-spotlight-api";
 import {
   ClipboardProps,
   initClipboardListener,
@@ -8,6 +9,11 @@ import {
 export const useInit = (props: ClipboardProps) => {
   const clipboard = useRequest(() => initClipboardListener(props));
   const shortcut = useRequest(() => initShortcutListener());
+
+  useMount(() => {
+    // hide();
+    document.addEventListener("contextmenu", (event) => event.preventDefault());
+  });
 
   const unmount = () => {
     if (!clipboard.loading) {
