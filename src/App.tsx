@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./App.css";
 import { useInit } from "./hooks/useInit";
-import { hidePanelAndPaste } from "./utils/ipc";
+import { hidePanelAndPaste } from "./utils/paste";
 
 function App() {
   const [greetMsg, setGreetMsg] = useState("");

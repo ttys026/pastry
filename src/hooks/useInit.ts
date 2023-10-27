@@ -12,7 +12,8 @@ export const useInit = (props: ClipboardProps) => {
 
   useMount(() => {
     // hide();
-    document.addEventListener("contextmenu", (event) => event.preventDefault());
+    // document.addEventListener("contextmenu", (event) => event.preventDefault());
+    // document.addEventListener("contextmenu", (event) => event.preventDefault());
   });
 
   const unmount = () => {

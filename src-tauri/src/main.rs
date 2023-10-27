@@ -1,23 +1,8 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use enigo::*;
 use tauri::Manager;
 use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem};
-
-#[tauri::command]
-fn send_key(key: String) {
-    let mut enigo = Enigo::new();
-    enigo.key_sequence(&key);
-}
-
-#[tauri::command]
-fn paste() {
-    let mut enigo = Enigo::new();
-    enigo.key_down(Key::Meta);
-    enigo.key_click(Key::Layout('v'));
-    enigo.key_up(Key::Meta);
-}
 
 fn main() {
     let quit = CustomMenuItem::new("quit".to_string(), "Quit");
@@ -48,7 +33,7 @@ fn main() {
                 global_close_shortcut: Some(String::from("Escape")),
             },
         )))
-        .invoke_handler(tauri::generate_handler![send_key, paste])
+        .invoke_handler(tauri::generate_handler![])
         .system_tray(SystemTray::new().with_menu(tray_menu))
         .on_system_tray_event(|app, event| match event {
             SystemTrayEvent::LeftClick {
