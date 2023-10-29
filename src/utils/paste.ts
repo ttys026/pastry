@@ -19,6 +19,7 @@ export const paste = async () => {
     throw new Error("paste failed");
   }
 };
+
 export const copy = async () => {
   const command = Command.sidecar("binary/sendkeys", [
     "--characters",

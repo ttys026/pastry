@@ -8,6 +8,9 @@ import {
 import { ocr } from "./ocr";
 import { appWindow } from "@tauri-apps/api/window";
 
+let shortcutRegistering = false;
+let clipboardRegistering = false;
+
 export interface ClipboardProps {
   onCopyImage: (base64: string) => void;
   onOcrImage: (params: { base64: string; text: string }) => void;
@@ -15,6 +18,10 @@ export interface ClipboardProps {
 }
 
 export const initShortcutListener = async () => {
+  if (shortcutRegistering) {
+    return () => {};
+  }
+  shortcutRegistering = true;
   await register("Command+`", async () => {
     appWindow.setAlwaysOnTop(true);
     if (await appWindow.isVisible()) {
@@ -25,14 +32,23 @@ export const initShortcutListener = async () => {
     }
     console.log("Shortcut triggered");
   });
+  shortcutRegistering = false;
 
   return () => {
-    unregister("Command+1");
+    unregister("Command+1").then(() => {
+      shortcutRegistering = false;
+    });
   };
 };
 
 export const initClipboardListener = async (props: ClipboardProps) => {
+  if (clipboardRegistering) {
+    return () => {};
+  }
+  clipboardRegistering = true;
   const plugins: UnlistenFn[] = [];
+
+  console.info("register");
 
   plugins.push(
     await listen(TEXT_CHANGED, (event) => {
@@ -42,6 +58,7 @@ export const initClipboardListener = async (props: ClipboardProps) => {
   );
   plugins.push(
     await listen(IMAGE_CHANGED, async (event) => {
+      console.log(event);
       const base64 = (event.payload as any).value;
       props.onCopyImage(base64);
       const text = await ocr(base64);
@@ -49,8 +66,10 @@ export const initClipboardListener = async (props: ClipboardProps) => {
     })
   );
   plugins.push(await listenToClipboard());
+  clipboardRegistering = false;
 
   return () => {
     plugins.forEach((ele) => ele());
+    clipboardRegistering = false;
   };
 };

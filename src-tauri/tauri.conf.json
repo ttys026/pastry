@@ -58,7 +58,7 @@
         "all": true,
         "scope": ["**"]
       },
-      "os": {
+      "path": {
         "all": true
       },
       "window": {

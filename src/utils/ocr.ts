@@ -1,16 +1,10 @@
-import { tempdir } from "@tauri-apps/api/os";
-import { readTextFile, removeFile, writeBinaryFile } from "@tauri-apps/api/fs";
 import { Command } from "@tauri-apps/api/shell";
-
-let tempdirPath = "";
+import { cache } from "./storage";
 
 export const ocr = async (base64: string) => {
-  if (!tempdirPath) {
-    tempdirPath = await tempdir();
-  }
-  const imgDir = `${tempdirPath}pastry_image_${Date.now()}_${Math.random()}.txt`;
-  const outputDir = `${tempdirPath}pastry_output_${Date.now()}_${Math.random()}.txt`;
-  await writeBinaryFile(
+  const imgDir = `pastry_image_${Date.now()}_${Math.random()}`;
+  const outputDir = `pastry_output_${Date.now()}_${Math.random()}.txt`;
+  await cache.set(
     imgDir,
     new Uint8Array(
       atob(base64)
@@ -18,19 +12,25 @@ export const ocr = async (base64: string) => {
         .map((char) => char.charCodeAt(0))
     )
   );
-  console.info({ imgDir, outputDir });
+  console.info({
+    imgDir,
+    outputDir,
+    a: await cache.patch(imgDir),
+    b: await cache.patch(outputDir),
+  });
   const command = Command.sidecar("binary/OCR", [
     "zh-Hans,en-US",
     "false",
     "true",
-    imgDir,
-    outputDir,
+    await cache.patch(imgDir),
+    await cache.patch(outputDir),
   ]);
   const { code } = await command.execute();
   if (code !== 0) {
     throw new Error("OCR 失败");
   }
-  const output = await readTextFile(outputDir);
-  removeFile(outputDir);
+  console.info("????", code);
+  const output = await cache.get(outputDir);
+  cache.remove(outputDir);
   return JSON.parse(output);
 };

@@ -10,7 +10,10 @@ export const useInit = (props: ClipboardProps) => {
   const clipboard = useRequest(() => initClipboardListener(props));
   const shortcut = useRequest(() => initShortcutListener());
 
+  console.log("????", clipboard);
+
   useMount(() => {
+    console.log("mount");
     // hide();
     // document.addEventListener("contextmenu", (event) => event.preventDefault());
     // document.addEventListener("contextmenu", (event) => event.preventDefault());
