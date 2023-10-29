@@ -1,4 +1,4 @@
-interface ClipItem {
+export interface ClipItem {
   data: string;
   type: "text" | "binary";
   ocr?: string;
@@ -18,33 +18,41 @@ const isSame = (a: ClipItem, b: ClipItem) => {
 
 class Manager {
   list: ClipItem[] = [];
-  limit = 100;
+  private limit = 100;
+  private callbacks: (() => void)[] = [];
+
   constructor() {}
-  public build({
+
+  private notify = () => {
+    this.callbacks.forEach((ele) => ele());
+  };
+
+  public build = ({
     data,
     type,
   }: {
     data: string;
     type: "text" | "binary";
-  }): ClipItem {
+  }): ClipItem => {
     return {
       data,
       type,
       category: "text",
       time: Date.now(),
     };
-  }
+  };
 
-  public ocr({ data, ocr }: { data: string; ocr: string }) {
+  public ocr = ({ data, ocr }: { data: string; ocr: string }) => {
     const found = this.list.find(
       (ele) => ele.data === data && ele.type === "binary"
     );
     if (found) {
       found.ocr = ocr;
+      this.notify();
     }
-  }
+  };
 
-  public add(item: ClipItem) {
+  public add = (item: ClipItem) => {
     const duplicateEntry = this.list.findIndex((i) => isSame(i, item));
     // remove duplicate
     if (duplicateEntry !== -1) {
@@ -55,15 +63,16 @@ class Manager {
       this.list.pop();
     }
     this.list.unshift(item);
-  }
-  public use(item: ClipItem) {
-    const entry = this.list.findIndex((i) => isSame(i, item));
-    // remove duplicate
-    if (entry !== -1) {
-      this.list.splice(entry, 1);
-      this.list.unshift(item);
-    }
-  }
+    this.notify();
+  };
+
+  public listen = (cb: () => void) => {
+    this.callbacks.push(cb);
+
+    return () => {
+      this.callbacks.splice(this.callbacks.indexOf(cb), 1);
+    };
+  };
 }
 
 export const manager = new Manager();

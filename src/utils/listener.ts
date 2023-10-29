@@ -48,8 +48,6 @@ export const initClipboardListener = async (props: ClipboardProps) => {
   clipboardRegistering = true;
   const plugins: UnlistenFn[] = [];
 
-  console.info("register");
-
   plugins.push(
     await listen(TEXT_CHANGED, (event) => {
       console.log(event);

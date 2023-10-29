@@ -1,9 +1,12 @@
-import "./App.css";
 import { useInit } from "./hooks/useInit";
-import { Input } from "antd";
 import { manager } from "./utils/history";
+import { useEffect, useState } from "react";
+import Search from "./components/Search";
+import Message from "./components/Message";
 
 function App() {
+  const [key, setKey] = useState(0);
+
   useInit({
     onCopyImage: (base64) => {
       manager.add(manager.build({ data: base64, type: "binary" }));
@@ -16,18 +19,20 @@ function App() {
     },
   });
 
+  useEffect(() => {
+    return manager.listen(() => {
+      setKey((k) => k + 1);
+    });
+  }, []);
+
   return (
     <div className="container">
-      <Input />
-      <>
+      <Search />
+      <div key={key}>
         {manager.list.map((ele, index) => {
-          if (ele.type === "text") {
-            return <div key={ele.time + ele.data + index}>{ele.data}</div>;
-          } else {
-            return <img src={ele.data} />;
-          }
+          return <Message {...ele} key={ele.time + ele.data + index} />;
         })}
-      </>
+      </div>
     </div>
   );
 }
