@@ -1,0 +1,13 @@
+.searchBox {
+  height: 60px;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+  font-size: 22px;
+}
+
+.searchBox > input {
+  margin-left: 8px;
+}
+
+.searchBox .ant-input-clear-icon {
+  font-size: 16px;
+}

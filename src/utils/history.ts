@@ -17,9 +17,16 @@ const isSame = (a: ClipItem, b: ClipItem) => {
 };
 
 class Manager {
-  list: ClipItem[] = [];
+  private _list: ClipItem[] = [];
+  private keyword = "";
   private limit = 100;
   private callbacks: (() => void)[] = [];
+
+  public get list() {
+    return this._list.filter((ele) => {
+      return new RegExp(this.keyword, "i").test(ele.ocr || ele.data);
+    });
+  }
 
   constructor() {}
 
@@ -43,7 +50,7 @@ class Manager {
   };
 
   public ocr = ({ data, ocr }: { data: string; ocr: string }) => {
-    const found = this.list.find(
+    const found = this._list.find(
       (ele) => ele.data === data && ele.type === "binary"
     );
     if (found) {
@@ -53,16 +60,21 @@ class Manager {
   };
 
   public add = (item: ClipItem) => {
-    const duplicateEntry = this.list.findIndex((i) => isSame(i, item));
+    const duplicateEntry = this._list.findIndex((i) => isSame(i, item));
     // remove duplicate
     if (duplicateEntry !== -1) {
-      this.list.splice(duplicateEntry, 1);
+      this._list.splice(duplicateEntry, 1);
     }
     // pop out latest
-    if (this.list.length > this.limit) {
-      this.list.pop();
+    if (this._list.length > this.limit) {
+      this._list.pop();
     }
-    this.list.unshift(item);
+    this._list.unshift(item);
+    this.notify();
+  };
+
+  public search = (keyword: string) => {
+    this.keyword = keyword;
     this.notify();
   };
 

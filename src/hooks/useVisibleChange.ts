@@ -1,5 +1,6 @@
 import { useDocumentVisibility, useMemoizedFn } from "ahooks";
 import { useEffect } from "react";
+import { appWindow } from "@tauri-apps/api/window";
 
 export const useVisibleChange = (props: {
   onShow: () => void;
@@ -11,6 +12,7 @@ export const useVisibleChange = (props: {
 
   useEffect(() => {
     if (state === "visible") {
+      appWindow.center();
       onShow();
     }
     if (state === "hidden") {
