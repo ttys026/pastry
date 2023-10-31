@@ -29,12 +29,9 @@
             "name": "binary/OCR",
             "sidecar": true,
             "args": [
-              "zh-Hans,en-US",
-              "false",
-              "true",
-              {
-                "validator": "\\S+"
-              },
+              "-l",
+              "zh-Hans",
+              "-i",
               {
                 "validator": "\\S+"
               }
