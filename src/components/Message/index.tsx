@@ -1,9 +1,10 @@
 import { ClipItem } from "../../utils/history";
 import { writeText, writeImage } from "tauri-plugin-clipboard-api";
-import "./index.css";
 import { hidePanelAndPaste } from "../../utils/paste";
 import { useState } from "react";
 import { CopyOutlined } from "@ant-design/icons";
+import TimeAgo from "../TimeAgo";
+import "./index.css";
 
 function Message(props: ClipItem) {
   const [hover, setHover] = useState(false);
@@ -15,6 +16,11 @@ function Message(props: ClipItem) {
     } else {
       await writeImage(props.data);
     }
+    hidePanelAndPaste();
+  };
+
+  const pasteOcr = async () => {
+    await writeText(props.ocr || "");
     hidePanelAndPaste();
   };
 
@@ -36,10 +42,26 @@ function Message(props: ClipItem) {
         <span>{props.data}</span>
       ) : (
         <>
-          <img src={`data:image/png;base64,${props.data}`} />
-          {!!props.ocr && <pre>{JSON.stringify(props.ocr)}</pre>}
+          <img height={40} src={`data:image/png;base64,${props.data}`} />
         </>
       )}
+      <div className="footer">
+        {props.ocr ? (
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              pasteOcr();
+            }}
+            className="ocr"
+          >
+            {props.ocr.trim()}
+          </div>
+        ) : (
+          <div />
+        )}
+        <TimeAgo time={props.time} />
+      </div>
     </div>
   );
 }

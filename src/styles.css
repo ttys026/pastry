@@ -13,10 +13,12 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
+  --hGap: 24px;
+  --vGap: 16px;
 }
 
 body {
-  margin: 16px;
+  margin: var(--vGap);
 }
 
 .container {
@@ -26,4 +28,11 @@ body {
   justify-content: center;
   text-align: center;
   background-color: white;
+  height: calc(100vh - (2 * var(--vGap)));
+}
+
+.scroller {
+  flex: 1;
+  height: 1px;
+  overflow: auto;
 }

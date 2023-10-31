@@ -1,8 +1,8 @@
-import { SearchOutlined } from "@ant-design/icons";
 import { Input, InputRef } from "antd";
 import { useRef, useState } from "react";
 import { useVisibleChange } from "../../hooks/useVisibleChange";
 import { manager } from "../../utils/history";
+import logo from "../../assets/logo.svg";
 import "./index.css";
 
 function App() {
@@ -22,7 +22,7 @@ function App() {
   return (
     <Input
       className="searchBox"
-      prefix={<SearchOutlined />}
+      prefix={<img width={32} height={32} src={logo} alt="search" />}
       allowClear
       value={value}
       // onPressEnter={}

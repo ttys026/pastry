@@ -1,7 +1,8 @@
 .searchBox {
   height: 60px;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2) !important;
   font-size: 22px;
+  margin-bottom: 16px;
 }
 
 .searchBox > input {

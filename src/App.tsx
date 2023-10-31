@@ -28,7 +28,7 @@ function App() {
   return (
     <div className="container">
       <Search />
-      <div key={key}>
+      <div className="scroller" key={key}>
         {manager.list.map((ele, index) => {
           return <Message {...ele} key={ele.time + ele.data + index} />;
         })}
