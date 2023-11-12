@@ -1,5 +1,4 @@
 const isInShortcut = (a: string) => a.startsWith("-");
-const isInHistory = (a: string) => !isInShortcut(a);
 
 export const moveLeft = (active: string, total: number) => {
   if (total === 0) {

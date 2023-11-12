@@ -2,7 +2,7 @@ import { useInit } from "./hooks/useInit";
 import { manager } from "./utils/history";
 import { useEffect, useState } from "react";
 import Search from "./components/Search";
-import Shortcut from "./components/Shortcut";
+import Shortcut from "./components/ShortCut";
 import Message from "./components/Message";
 import { useKeyPress, useUpdate } from "ahooks";
 import useMouseLock from "./hooks/useMouseLock";
