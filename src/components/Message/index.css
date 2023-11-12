@@ -7,6 +7,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   position: relative;
+  scroll-margin-block: 1px;
 }
 
 .box img {
@@ -27,13 +28,21 @@
   margin-top: 2px;
 }
 
-.box.hover {
+.hover {
   border-color: rgb(22, 119, 255);
+  background-color: #e6f4ff;
   cursor: pointer;
 }
 
 .box:last-of-type {
   margin-bottom: 0;
+}
+
+.box:focus-within {
+  background-color: rgba(22, 119, 255, 0.1);
+  box-shadow: none;
+  border-color: transparent;
+  outline: none;
 }
 
 .footer {

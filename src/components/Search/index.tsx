@@ -5,31 +5,41 @@ import { manager } from "../../utils/history";
 import logo from "../../assets/logo.svg";
 import "./index.css";
 
-function App() {
+function Search({ onReset }: { onReset: () => void }) {
   const [value, _onChange] = useState("");
   const ref = useRef<InputRef | null>();
 
   useVisibleChange({
-    onShow: () => ref.current?.focus?.(),
-    onHide: () => onChange(""),
+    onShow: () => {
+      ref.current?.focus?.();
+      onReset();
+    },
+    onHide: () => {
+      onChange("");
+      onReset();
+    },
   });
 
   const onChange = (val: string) => {
-    _onChange(val);
     manager.search(val);
+    _onChange(val);
+    onReset();
   };
 
   return (
     <Input
       className="searchBox"
+      tabIndex={-1}
       prefix={<img width={32} height={32} src={logo} alt="search" />}
       allowClear
       value={value}
       // onPressEnter={}
+      spellCheck={false}
+      autoCorrect=""
       onChange={(e) => onChange(e.target.value)}
       ref={(r) => (ref.current = r)}
     />
   );
 }
 
-export default App;
+export default Search;

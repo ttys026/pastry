@@ -1,13 +1,16 @@
 import { ClipItem } from "../../utils/history";
 import { writeText, writeImage } from "tauri-plugin-clipboard-api";
 import { hidePanelAndPaste } from "../../utils/paste";
-import { useState } from "react";
-import { CopyOutlined } from "@ant-design/icons";
 import TimeAgo from "../TimeAgo";
 import "./index.css";
 
-function Message(props: ClipItem) {
-  const [hover, setHover] = useState(false);
+function Message(
+  props: ClipItem & {
+    isActive: boolean;
+    index: string;
+    setActive: (v: string) => void;
+  }
+) {
   const isText = props.type === "text";
 
   const paste = async () => {
@@ -26,18 +29,11 @@ function Message(props: ClipItem) {
 
   return (
     <div
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      className={"box" + (hover ? " hover" : "")}
+      onMouseMove={() => props.setActive(props.index)}
+      data-index={props.index}
+      className={"box" + (props.isActive ? " hover" : "")}
       onClick={paste}
     >
-      {hover && (
-        <div className="actions">
-          <div onClick={paste}>
-            <CopyOutlined />
-          </div>
-        </div>
-      )}
       {isText ? (
         <span>{props.data}</span>
       ) : (

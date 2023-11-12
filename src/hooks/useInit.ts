@@ -10,8 +10,6 @@ export const useInit = (props: ClipboardProps) => {
   const clipboard = useRequest(() => initClipboardListener(props));
   const shortcut = useRequest(() => initShortcutListener());
 
-  console.log("????", clipboard);
-
   useMount(() => {
     console.log("mount");
     // hide();
@@ -27,7 +25,6 @@ export const useInit = (props: ClipboardProps) => {
     if (!shortcut.loading) {
       shortcut.data?.();
     }
-    console.info("unmount", clipboard, shortcut);
   };
 
   useUnmount(unmount);

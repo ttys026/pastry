@@ -18,6 +18,64 @@ const isSame = (a: ClipItem, b: ClipItem) => {
 
 class Manager {
   private _list: ClipItem[] = [];
+  private _pins: (ClipItem & { title: string })[] = [
+    {
+      title: "引用类型",
+      type: "text",
+      data: `import styles from './index.module.scss';`,
+      time: 0,
+    },
+    {
+      title: "单测初始化",
+      type: "text",
+      data: `import React from 'react';
+import Comp from '..';
+import { render } from '@testing-library/react';
+
+describe('comp', () => {
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+  it('should render', () => {
+    const { container } = render(<Comp />);
+    expect(container.children).toMatchSnapshot();
+  });
+});
+`,
+      time: 0,
+    },
+    {
+      title: "Model 初始化",
+      type: "text",
+      data: `import { createContainer } from 'unstated-next';
+
+export const _useContainer = () => {
+  return {};
+};
+
+export const PageModel = createContainer(_useContainer);
+`,
+      time: 0,
+    },
+    {
+      title: "React 初始化",
+      type: "text",
+      data: [
+        "import React from 'react'",
+        "",
+        "interface Props {}",
+        "",
+        "export default (props: Props) => {",
+        "  return <div>123</div>;",
+        "};",
+        "",
+      ].join("\n"),
+      time: 0,
+    },
+  ];
   private keyword = "";
   private limit = 100;
   private callbacks: (() => void)[] = [];
@@ -25,6 +83,13 @@ class Manager {
   public get list() {
     return this._list.filter((ele) => {
       return new RegExp(this.keyword, "i").test(ele.ocr || ele.data);
+    });
+  }
+
+  public get pins() {
+    return this._pins.filter((ele) => {
+      const regex = new RegExp(this.keyword, "i");
+      return regex.test(ele.title) || regex.test(ele.ocr || ele.data);
     });
   }
 
