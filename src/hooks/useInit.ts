@@ -1,3 +1,5 @@
+import { invoke } from "@tauri-apps/api/tauri";
+import { appWindow } from "@tauri-apps/api/window";
 import { useMount, useRequest, useUnmount } from "ahooks";
 // import { hide } from "tauri-plugin-spotlight-api";
 import {
@@ -11,7 +13,7 @@ export const useInit = (props: ClipboardProps) => {
   const shortcut = useRequest(() => initShortcutListener());
 
   useMount(() => {
-    console.log("mount");
+    invoke("init_spotlight_window");
     // hide();
     // document.addEventListener("contextmenu", (event) => event.preventDefault());
     // document.addEventListener("contextmenu", (event) => event.preventDefault());

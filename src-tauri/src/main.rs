@@ -1,10 +1,14 @@
-// Prevents additional console window on Windows in release, DO NOT REMOVE!!
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+#![cfg_attr(
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
+)]
 
-use tauri::Manager;
-use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem};
+use tauri::{SystemTrayMenu, CustomMenuItem, SystemTrayMenuItem, SystemTrayEvent, SystemTray, Manager};
+
+mod spotlight;
 
 fn main() {
+
     let quit = CustomMenuItem::new("quit".to_string(), "Quit");
     let hide = CustomMenuItem::new("hide".to_string(), "Hide");
     let show = CustomMenuItem::new("show".to_string(), "Show");
@@ -15,25 +19,20 @@ fn main() {
         .add_native_item(SystemTrayMenuItem::Separator)
         .add_item(show);
 
+
     tauri::Builder::default()
-        .setup(|app| {
+        .invoke_handler(tauri::generate_handler![
+            spotlight::init_spotlight_window,
+            spotlight::show_spotlight,
+            spotlight::hide_spotlight
+        ])
+        .manage(spotlight::State::default())
+        .plugin(tauri_plugin_clipboard::init())
+        .setup(move |app| {
+            // Set activation poicy to Accessory to prevent the app icon from showing on the dock
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
-            let window = app.get_window("main").unwrap();
-            window.set_always_on_top(true).unwrap();
             Ok(())
         })
-        .plugin(tauri_plugin_clipboard::init())
-        .plugin(tauri_plugin_spotlight::init(Some(
-            tauri_plugin_spotlight::PluginConfig {
-                windows: Some(vec![tauri_plugin_spotlight::WindowConfig {
-                    label: String::from("main"),
-                    shortcut: String::from("Command+`"),
-                    macos_window_level: Some(20), // Default 24
-                }]),
-                global_close_shortcut: Some(String::from("Escape")),
-            },
-        )))
-        .invoke_handler(tauri::generate_handler![])
         .system_tray(SystemTray::new().with_menu(tray_menu))
         .on_system_tray_event(|app, event| match event {
             SystemTrayEvent::LeftClick {

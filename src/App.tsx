@@ -1,12 +1,19 @@
 import { useInit } from "./hooks/useInit";
 import { manager } from "./utils/history";
 import { useEffect, useState } from "react";
+import {
+  LeftOutlined,
+  RightOutlined,
+  UpOutlined,
+  DownOutlined,
+} from "@ant-design/icons";
 import Search from "./components/Search";
 import Shortcut from "./components/ShortCut";
 import Message from "./components/Message";
 import { useKeyPress, useUpdate } from "ahooks";
 import useMouseLock from "./hooks/useMouseLock";
 import { moveDown, moveLeft, moveRight, moveUp } from "./utils/move";
+import { invoke } from "@tauri-apps/api";
 
 function App() {
   const update = useUpdate();
@@ -35,9 +42,13 @@ function App() {
   });
 
   useKeyPress(
-    ["tab", "uparrow", "downarrow", "enter", "leftarrow", "rightarrow"],
+    ["tab", "uparrow", "downarrow", "enter", "leftarrow", "rightarrow", "esc"],
     async (e) => {
       e.preventDefault();
+      if (e.code === "Escape") {
+        invoke("hide_spotlight");
+        return;
+      }
       if (e.code === "Enter") {
         const element = document.querySelector(`[data-index="${active}"]`);
         if (element) {
@@ -93,11 +104,23 @@ function App() {
           setActive("0");
         }}
       />
+      <div className="info">
+        使用 &nbsp;
+        <LeftOutlined />
+        <RightOutlined />
+        &nbsp; 切换快捷方式
+      </div>
       <Shortcut
         active={active}
         mouseActive={mouseActiveChange}
         keyboardActive={setActive}
       />
+      <div className="info">
+        使用 &nbsp;
+        <UpOutlined />
+        <DownOutlined />
+        &nbsp; 切换历史记录
+      </div>
       <div className="scroller">
         {manager.list.map((ele, index) => {
           const key = index.toString();
