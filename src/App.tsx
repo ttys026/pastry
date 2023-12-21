@@ -13,7 +13,7 @@ import Message from "./components/Message";
 import { useKeyPress, useUpdate } from "ahooks";
 import useMouseLock from "./hooks/useMouseLock";
 import { moveDown, moveLeft, moveRight, moveUp } from "./utils/move";
-import { invoke } from "@tauri-apps/api";
+import { invoke } from "@tauri-apps/api/tauri";
 
 function App() {
   const update = useUpdate();

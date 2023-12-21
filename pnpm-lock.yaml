@@ -29,9 +29,6 @@ dependencies:
   tauri-plugin-clipboard-api:
     specifier: ^0.3.0
     version: 0.3.2
-  tauri-plugin-spotlight-api:
-    specifier: ^0.1.2
-    version: 0.1.2
 
 devDependencies:
   '@tauri-apps/cli':
@@ -1782,12 +1779,6 @@ packages:
     dependencies:
       '@tauri-apps/api': 1.5.1
       tslib: 2.6.2
-    dev: false
-
-  /tauri-plugin-spotlight-api@0.1.2:
-    resolution: {integrity: sha512-JBGCqm5X5D13yj4KuqXj4K0RDMJ7O9imnPtdlKbkqMIFWB4xgst2vosWTijgcf7H+CZO9sFL5bOjRWpkPdZlaw==}
-    dependencies:
-      '@tauri-apps/api': 1.5.1
     dev: false
 
   /throttle-debounce@5.0.0:

@@ -1,7 +1,6 @@
 import { invoke } from "@tauri-apps/api/tauri";
-import { appWindow } from "@tauri-apps/api/window";
 import { useMount, useRequest, useUnmount } from "ahooks";
-// import { hide } from "tauri-plugin-spotlight-api";
+
 import {
   ClipboardProps,
   initClipboardListener,

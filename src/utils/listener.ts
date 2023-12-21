@@ -6,6 +6,7 @@ import {
   listenToClipboard,
 } from "tauri-plugin-clipboard-api";
 import { ocr } from "./ocr";
+import { appWindow } from "@tauri-apps/api/window";
 
 let shortcutRegistering = false;
 let clipboardRegistering = false;
@@ -21,16 +22,10 @@ export const initShortcutListener = async () => {
     return () => {};
   }
   shortcutRegistering = true;
-  // await register("Command+`", async () => {
-  //   appWindow.setAlwaysOnTop(true);
-  //   if (await appWindow.isVisible()) {
-  //     appWindow.hide();
-  //   } else {
-  //     await appWindow.show();
-  //     appWindow.setFocus();
-  //   }
-  //   console.log("Shortcut triggered");
-  // });
+  await register("Command+1", async () => {
+    appWindow.setAlwaysOnTop(true);
+    console.log("Shortcut triggered");
+  });
   shortcutRegistering = false;
 
   return () => {

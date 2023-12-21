@@ -17,8 +17,7 @@
     "dayjs": "^1.11.10",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "tauri-plugin-clipboard-api": "^0.3.0",
-    "tauri-plugin-spotlight-api": "^0.1.2"
+    "tauri-plugin-clipboard-api": "^0.3.0"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.5.0",

@@ -4,7 +4,6 @@ import { useMemoizedFn, useMouse } from "ahooks";
 function useMouseLock(cb: React.Dispatch<React.SetStateAction<string>>) {
   const lock = useRef(false);
   const { clientX, clientY } = useMouse();
-  console.info("??????", clientX, clientY);
 
   useEffect(() => {
     lock.current = false;
