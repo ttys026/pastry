@@ -46,6 +46,16 @@
             ]
           }
         ]
+      },
+      "fs": {
+        "all": true,
+        "scope": ["**"]
+      },
+      "path": {
+        "all": true
+      },
+      "window": {
+        "all": true
       }
     },
     "bundle": {
