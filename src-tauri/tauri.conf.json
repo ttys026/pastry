@@ -92,11 +92,13 @@
     "updater": {
       "active": false
     },
+    "macOSPrivateApi": true,
     "windows": [
       {
         "fullscreen": false,
         "resizable": false,
         "decorations": false,
+        "transparent": true,
         "center": true,
         "visible": false,
         "width": 800,

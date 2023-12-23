@@ -15,26 +15,44 @@
   -webkit-text-size-adjust: 100%;
   --hGap: 24px;
   --vGap: 16px;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+}
+
+#root {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 body {
-  margin: var(--vGap);
+  margin: 0;
+  overflow: hidden;
+  background-color: transparent;
+  display: flex;
+  height: 100%;
+  width: 100%;
 }
 
 .container {
-  margin: 0;
+  flex: 1;
+  height: 1px;
+  margin-top: var(--hGap);
+  padding: 0 var(--vGap);
+  width: calc(100% - (2 * var(--vGap)));
   display: flex;
   flex-direction: column;
   justify-content: center;
   text-align: center;
-  background-color: white;
-  height: calc(100vh - (2 * var(--vGap)));
+  background-color: transparent;
 }
 
 .scroller {
   flex: 1;
   height: 1px;
   overflow: auto;
+  margin-bottom: var(--hGap);
 }
 
 .info {

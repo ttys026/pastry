@@ -4,6 +4,7 @@
 )]
 
 use tauri::{SystemTrayMenu, CustomMenuItem, SystemTrayMenuItem, SystemTrayEvent, SystemTray, Manager};
+use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
 
 mod spotlight;
 
@@ -29,6 +30,10 @@ fn main() {
         .manage(spotlight::State::default())
         .plugin(tauri_plugin_clipboard::init())
         .setup(move |app| {
+            #[cfg(target_os = "macos")]
+                let window = app.get_window("main").unwrap();
+                apply_vibrancy(&window, NSVisualEffectMaterial::HudWindow, None, Some(16.0))
+                .expect("Unsupported platform! 'apply_vibrancy' is only supported on macOS");
             // Set activation poicy to Accessory to prevent the app icon from showing on the dock
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
             Ok(())
