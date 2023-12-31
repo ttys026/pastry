@@ -12,10 +12,10 @@
 
 .box img {
   user-select: none;
+  -webkit-user-select: none;
 }
 
 .box span {
-  user-select: text;
   white-space: nowrap;
   overflow: hidden;
 }
@@ -32,6 +32,11 @@
   border-color: rgb(22, 119, 255);
   background-color: #e6f4ff;
   cursor: pointer;
+}
+
+.box.hover * {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .box:last-of-type {

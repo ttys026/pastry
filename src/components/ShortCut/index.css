@@ -27,6 +27,8 @@
   margin-right: 8px;
   border-radius: 12px;
   scroll-margin-inline: 8px;
+  white-space: pre;
+  word-break: keep-all;
 }
 .shortcut .shortcutItem:last-child {
   margin-right: 1px;

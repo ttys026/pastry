@@ -5,6 +5,8 @@ import {
   removeFile,
   writeBinaryFile,
   writeFile,
+  exists,
+  createDir,
 } from "@tauri-apps/api/fs";
 
 let tempDir = "";
@@ -13,6 +15,9 @@ let dataDir = "";
 const getTempPath = async (key: string) => {
   if (!tempDir) {
     tempDir = await appCacheDir();
+    if (!(await exists(tempDir))) {
+      await createDir(tempDir);
+    }
   }
   return await join(tempDir, key);
 };
@@ -20,6 +25,9 @@ const getTempPath = async (key: string) => {
 const getDataPath = async (key: string) => {
   if (!dataDir) {
     dataDir = await appDataDir();
+    if (!(await exists(dataDir))) {
+      await createDir(dataDir);
+    }
   }
   return await join(dataDir, key);
 };
@@ -49,3 +57,7 @@ class Storage {
 
 export const cache = new Storage({ patch: getTempPath });
 export const storage = new Storage({ patch: getDataPath });
+export const STORE_KEY = {
+  HISTORY: "history",
+  PINS: "pins",
+};

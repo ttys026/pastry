@@ -1,11 +1,12 @@
 import { useInit } from "./hooks/useInit";
 import { manager } from "./utils/history";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   LeftOutlined,
   RightOutlined,
   UpOutlined,
   DownOutlined,
+  PlusCircleOutlined,
 } from "@ant-design/icons";
 import Search from "./components/Search";
 import Shortcut from "./components/ShortCut";
@@ -14,10 +15,13 @@ import { useKeyPress, useUpdate } from "ahooks";
 import useMouseLock from "./hooks/useMouseLock";
 import { moveDown, moveLeft, moveRight, moveUp } from "./utils/move";
 import { invoke } from "@tauri-apps/api/tauri";
+import AddPin from "./components/AddPin";
 
 function App() {
   const update = useUpdate();
   const [active, setActive] = useState("0");
+  const [addVisible, setAddVisible] = useState(false);
+  const editIndex = useRef(0);
   const { mouseActiveChange, lockMouse } = useMouseLock(setActive);
 
   const scrollToIndexIfNecessary = (index: string) => {
@@ -93,7 +97,10 @@ function App() {
   );
 
   useEffect(() => {
-    return manager.listen(update);
+    return manager.listen(() => {
+      console.info("manager change");
+      update();
+    });
   }, []);
 
   return (
@@ -109,11 +116,30 @@ function App() {
         <LeftOutlined />
         <RightOutlined />
         &nbsp; 切换快捷方式
+        <PlusCircleOutlined
+          onClick={() => {
+            editIndex.current = NaN;
+            setAddVisible(true);
+          }}
+          style={{ marginLeft: "8px" }}
+        />
+        {addVisible && (
+          <AddPin
+            index={editIndex.current}
+            visible={addVisible}
+            onChange={setAddVisible}
+          />
+        )}
       </div>
       <Shortcut
         active={active}
+        lockMouse={lockMouse}
         mouseActive={mouseActiveChange}
         keyboardActive={setActive}
+        onEdit={(index) => {
+          editIndex.current = index;
+          setAddVisible(true);
+        }}
       />
       <div className="info">
         使用 &nbsp;

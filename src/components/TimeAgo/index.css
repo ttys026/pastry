@@ -1,3 +1,4 @@
-.timeAgo {
-  /* float: right; */
+.timeAgo * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
 }
