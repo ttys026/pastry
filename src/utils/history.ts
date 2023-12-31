@@ -18,64 +18,64 @@ const isSame = (a: ClipItem, b: ClipItem) => {
   return false;
 };
 
-const defaultPins = [
-  {
-    title: "引用类型",
-    type: "text",
-    data: `import styles from './index.module.scss';`,
-    time: 0,
-  },
-  {
-    title: "单测初始化",
-    type: "text",
-    data: `import React from 'react';
-import Comp from '..';
-import { render } from '@testing-library/react';
+// const defaultPins = [
+//   {
+//     title: "引用类型",
+//     type: "text",
+//     data: `import styles from './index.module.scss';`,
+//     time: 0,
+//   },
+//   {
+//     title: "单测初始化",
+//     type: "text",
+//     data: `import React from 'react';
+// import Comp from '..';
+// import { render } from '@testing-library/react';
 
-describe('comp', () => {
-beforeAll(() => {
-  jest.useFakeTimers();
-});
-afterAll(() => {
-  jest.useRealTimers();
-});
-it('should render', () => {
-  const { container } = render(<Comp />);
-  expect(container.children).toMatchSnapshot();
-});
-});
-`,
-    time: 0,
-  },
-  {
-    title: "Model 初始化",
-    type: "text",
-    data: `import { createContainer } from 'unstated-next';
+// describe('comp', () => {
+// beforeAll(() => {
+//   jest.useFakeTimers();
+// });
+// afterAll(() => {
+//   jest.useRealTimers();
+// });
+// it('should render', () => {
+//   const { container } = render(<Comp />);
+//   expect(container.children).toMatchSnapshot();
+// });
+// });
+// `,
+//     time: 0,
+//   },
+//   {
+//     title: "Model 初始化",
+//     type: "text",
+//     data: `import { createContainer } from 'unstated-next';
 
-export const _useContainer = () => {
-return {};
-};
+// export const _useContainer = () => {
+// return {};
+// };
 
-export const PageModel = createContainer(_useContainer);
-`,
-    time: 0,
-  },
-  {
-    title: "React 初始化",
-    type: "text",
-    data: [
-      "import React from 'react'",
-      "",
-      "interface Props {}",
-      "",
-      "export default (props: Props) => {",
-      "  return <div>123</div>;",
-      "};",
-      "",
-    ].join("\n"),
-    time: 0,
-  },
-];
+// export const PageModel = createContainer(_useContainer);
+// `,
+//     time: 0,
+//   },
+//   {
+//     title: "React 初始化",
+//     type: "text",
+//     data: [
+//       "import React from 'react'",
+//       "",
+//       "interface Props {}",
+//       "",
+//       "export default (props: Props) => {",
+//       "  return <div>123</div>;",
+//       "};",
+//       "",
+//     ].join("\n"),
+//     time: 0,
+//   },
+// ];
 
 class Manager {
   private _list: ClipItem[] = [];
