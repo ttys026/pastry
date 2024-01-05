@@ -951,6 +951,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "enigo"
+version = "0.2.0-rc2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6925cb691c78a9620a2bfc8caab15e8028c8665b41a726f83313ff2cd0df01b2"
+dependencies = [
+ "core-foundation",
+ "core-graphics 0.23.1",
+ "libc",
+ "log",
+ "objc",
+ "windows 0.51.1",
+ "xkbcommon",
+ "xkeysym",
+]
+
+[[package]]
 name = "enumflags2"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2215,6 +2231,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f665ee40bc4a3c5590afb1e9677db74a508659dfd71e126420da8274909a0167"
 
 [[package]]
+name = "memmap2"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "43a5a03cefb0d953ec0be133036f14e109412fa594edc2f77227249db66cc3ed"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "memoffset"
 version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2640,6 +2665,7 @@ dependencies = [
  "cocoa 0.25.0",
  "core-foundation",
  "core-graphics 0.23.1",
+ "enigo",
  "objc",
  "objc-foundation",
  "objc_id",
@@ -5274,6 +5300,23 @@ dependencies = [
  "nix 0.26.4",
  "winapi",
 ]
+
+[[package]]
+name = "xkbcommon"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "13867d259930edc7091a6c41b4ce6eee464328c6ff9659b7e4c668ca20d4c91e"
+dependencies = [
+ "libc",
+ "memmap2",
+ "xkeysym",
+]
+
+[[package]]
+name = "xkeysym"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "054a8e68b76250b253f671d1268cb7f1ae089ec35e195b2efb2a4e9a836d0621"
 
 [[package]]
 name = "zbus"

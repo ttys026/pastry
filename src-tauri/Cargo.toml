@@ -17,6 +17,7 @@ tauri = { version = "1.5", features = [ "macos-private-api", "system-tray", "api
 tauri-plugin-clipboard = "0.3.1"
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
+enigo = "0.2.0-rc2"
 
 [target."cfg(target_os = \"macos\")".dependencies]
 core-graphics = {version = "0.23"}

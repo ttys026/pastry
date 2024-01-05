@@ -5,8 +5,27 @@
 
 use tauri::{SystemTrayMenu, CustomMenuItem, SystemTrayMenuItem, SystemTrayEvent, SystemTray, Manager};
 use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
+use enigo::{Enigo, Keyboard, Settings, Key, Direction::{Click, Press, Release}};
 
 mod spotlight;
+
+#[tauri::command]
+fn exec_paste() {
+    let mut enigo = Enigo::new(&Settings::default()).unwrap();
+    enigo.key(Key::Meta, Press).unwrap();
+    enigo.key(Key::Unicode('v'), Click).unwrap();
+    enigo.key(Key::Meta, Release).unwrap();
+}
+
+
+#[tauri::command]
+fn exec_copy() {
+    let mut enigo = Enigo::new(&Settings::default()).unwrap();
+    enigo.key(Key::Meta, Press).unwrap();
+    enigo.key(Key::Unicode('c'), Click).unwrap();
+    enigo.key(Key::Meta, Release).unwrap();
+}
+
 
 fn main() {
 
@@ -25,7 +44,9 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             spotlight::init_spotlight_window,
             spotlight::show_spotlight,
-            spotlight::hide_spotlight
+            spotlight::hide_spotlight,
+            exec_copy,
+            exec_paste,
         ])
         .manage(spotlight::State::default())
         .plugin(tauri_plugin_clipboard::init())
