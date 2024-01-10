@@ -49,9 +49,7 @@ svg:focus {
 .container {
   flex: 1;
   height: 1px;
-  margin-top: var(--hGap);
-  padding: 0 var(--vGap);
-  width: calc(100% - (2 * var(--vGap)));
+  width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -59,11 +57,19 @@ svg:focus {
   background-color: transparent;
 }
 
+.content {
+  padding: 0 var(--vGap);
+  margin-bottom: var(--hGap);
+  height: 1px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 .scroller {
   flex: 1;
   height: 1px;
   overflow: auto;
-  margin-bottom: var(--hGap);
 }
 
 .info {
@@ -75,4 +81,8 @@ svg:focus {
 
 .ant-modal-mask {
   border-radius: 12px;
+}
+
+.ant-tabs-nav-list * {
+  outline: none !important;
 }

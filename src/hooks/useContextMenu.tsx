@@ -1,13 +1,15 @@
 import { Menu } from "antd";
 import { useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
-import { manager } from "../utils/history";
 
 const noop = () => {};
 
 export const useContextMenu = (
   ref: React.RefObject<HTMLDivElement>,
-  { onEdit }: { onEdit: (i: number) => void }
+  {
+    onEdit,
+    onDelete,
+  }: { onEdit: (i: string) => void; onDelete: (i: string) => void }
 ) => {
   const close = useRef(noop);
   const lock = useRef(false);
@@ -22,9 +24,7 @@ export const useContextMenu = (
         if (!target) {
           return;
         }
-        const index = Number(
-          (target as HTMLDivElement).getAttribute("data-index")
-        );
+        const index = (target as HTMLDivElement).getAttribute("data-index")!;
         close.current();
         e.preventDefault();
         const el = document.createElement("div");
@@ -62,7 +62,7 @@ export const useContextMenu = (
                   onMouseEnter: () => (lock.current = true),
                   onMouseLeave: () => (lock.current = false),
                   onClick: () => {
-                    onEdit(-index);
+                    onEdit(index);
                     close.current();
                   },
                 },
@@ -74,7 +74,7 @@ export const useContextMenu = (
                   onMouseEnter: () => (lock.current = true),
                   onMouseLeave: () => (lock.current = false),
                   onClick: () => {
-                    manager.removePin(-index);
+                    onDelete(index);
                     close.current();
                   },
                 },

@@ -3,9 +3,14 @@
     windows_subsystem = "windows"
 )]
 
-use tauri::{SystemTrayMenu, CustomMenuItem, SystemTrayMenuItem, SystemTrayEvent, SystemTray, Manager};
+use enigo::{
+    Direction::{Click, Press, Release},
+    Enigo, Key, Keyboard, Settings,
+};
+use tauri::{
+    CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem,
+};
 use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
-use enigo::{Enigo, Keyboard, Settings, Key, Direction::{Click, Press, Release}};
 
 mod spotlight;
 
@@ -17,7 +22,6 @@ fn exec_paste() {
     enigo.key(Key::Meta, Release).unwrap();
 }
 
-
 #[tauri::command]
 fn exec_copy() {
     let mut enigo = Enigo::new(&Settings::default()).unwrap();
@@ -26,9 +30,22 @@ fn exec_copy() {
     enigo.key(Key::Meta, Release).unwrap();
 }
 
+#[tauri::command]
+fn run_shell(prog: String, arg: String) -> Result<String, String> {
+    let mut command = std::process::Command::new(prog);
+    let args = arg.split(' ');
+    for arg in args {
+        command.arg(arg);
+    }
+    if let Ok(child) = command.spawn() {
+        Ok(child.id().to_string().into())
+    } else {
+        Err("This failed!".into())
+    }
+    // let pid = sh("/Users/bytedance/Library/Android/sdk/emulator/emulator -avd Pixel_3a_API_34_extension_level_7_arm64-v8a");
+}
 
 fn main() {
-
     let quit = CustomMenuItem::new("quit".to_string(), "Quit");
     let hide = CustomMenuItem::new("hide".to_string(), "Hide");
     let show = CustomMenuItem::new("show".to_string(), "Show");
@@ -39,7 +56,6 @@ fn main() {
         .add_native_item(SystemTrayMenuItem::Separator)
         .add_item(show);
 
-
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             spotlight::init_spotlight_window,
@@ -47,13 +63,14 @@ fn main() {
             spotlight::hide_spotlight,
             exec_copy,
             exec_paste,
+            run_shell,
         ])
         .manage(spotlight::State::default())
         .plugin(tauri_plugin_clipboard::init())
         .setup(move |app| {
             #[cfg(target_os = "macos")]
-                let window = app.get_window("main").unwrap();
-                apply_vibrancy(&window, NSVisualEffectMaterial::HudWindow, None, Some(16.0))
+            let window = app.get_window("main").unwrap();
+            apply_vibrancy(&window, NSVisualEffectMaterial::HudWindow, None, Some(16.0))
                 .expect("Unsupported platform! 'apply_vibrancy' is only supported on macOS");
             // Set activation poicy to Accessory to prevent the app icon from showing on the dock
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);

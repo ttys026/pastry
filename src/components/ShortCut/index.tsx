@@ -14,7 +14,14 @@ function Shortcut(props: {
   onEdit: (i: number) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  useContextMenu(ref, { onEdit: props.onEdit });
+  useContextMenu(ref, {
+    onEdit: (i) => {
+      props.onEdit(-i);
+    },
+    onDelete: (i) => {
+      manager.removePin(-i);
+    },
+  });
 
   useEffect(() => {
     const left = document.querySelector(".shadow-left") as HTMLDivElement;

@@ -1,0 +1,10 @@
+.book-mark-item {
+  border: 1px solid #e8e8e8;
+  padding: 12px;
+  cursor: pointer;
+  height: 40px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

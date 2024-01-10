@@ -16,10 +16,13 @@ import useMouseLock from "./hooks/useMouseLock";
 import { moveDown, moveLeft, moveRight, moveUp } from "./utils/move";
 import { invoke } from "@tauri-apps/api/tauri";
 import AddPin from "./components/AddPin";
+import { Tabs } from "antd";
+import BookMark from "./features/BookMark";
 
 function App() {
   const update = useUpdate();
   const [active, setActive] = useState("0");
+  const [tab, setTab] = useState("0");
   const [addVisible, setAddVisible] = useState(false);
   const editIndex = useRef(0);
   const { mouseActiveChange, lockMouse } = useMouseLock(setActive);
@@ -87,6 +90,11 @@ function App() {
         });
         return;
       }
+      if (e.code === "Tab") {
+        lockMouse();
+        setTab((t) => (t === "0" ? "1" : "0"));
+        return;
+      }
       lockMouse();
       setActive((a) => {
         const next = moveDown(a, manager.list.length);
@@ -105,62 +113,81 @@ function App() {
 
   return (
     <div className="container">
-      <Search
-        onReset={() => {
-          lockMouse();
-          setActive("0");
-        }}
+      <Tabs
+        items={[
+          { label: "PasteBoard", key: "0" },
+          { label: "BookMarks", key: "1" },
+        ]}
+        animated={false}
+        onChange={setTab}
+        activeKey={tab}
+        type="editable-card"
       />
-      <div className="info">
-        使用 &nbsp;
-        <LeftOutlined />
-        <RightOutlined />
-        &nbsp; 切换快捷方式
-        <PlusCircleOutlined
-          onClick={() => {
-            editIndex.current = NaN;
-            setAddVisible(true);
-          }}
-          style={{ marginLeft: "8px" }}
-        />
-        {addVisible && (
-          <AddPin
-            index={editIndex.current}
-            visible={addVisible}
-            onChange={setAddVisible}
+      {tab === "0" && (
+        <div className="content">
+          <Search
+            onReset={() => {
+              lockMouse();
+              setActive("0");
+            }}
           />
-        )}
-      </div>
-      <Shortcut
-        active={active}
-        lockMouse={lockMouse}
-        mouseActive={mouseActiveChange}
-        keyboardActive={setActive}
-        onEdit={(index) => {
-          editIndex.current = index;
-          setAddVisible(true);
-        }}
-      />
-      <div className="info">
-        使用 &nbsp;
-        <UpOutlined />
-        <DownOutlined />
-        &nbsp; 切换历史记录
-      </div>
-      <div className="scroller">
-        {manager.list.map((ele, index) => {
-          const key = index.toString();
-          return (
-            <Message
-              {...ele}
-              index={key}
-              isActive={key === active}
-              setActive={mouseActiveChange}
-              key={ele.time + ele.data + index}
+          <div className="info">
+            使用 &nbsp;
+            <LeftOutlined />
+            <RightOutlined />
+            &nbsp; 切换快捷方式
+            <PlusCircleOutlined
+              onClick={() => {
+                editIndex.current = NaN;
+                setAddVisible(true);
+              }}
+              style={{ marginLeft: "8px" }}
             />
-          );
-        })}
-      </div>
+            {addVisible && (
+              <AddPin
+                index={editIndex.current}
+                visible={addVisible}
+                onChange={setAddVisible}
+              />
+            )}
+          </div>
+          <Shortcut
+            active={active}
+            lockMouse={lockMouse}
+            mouseActive={mouseActiveChange}
+            keyboardActive={setActive}
+            onEdit={(index) => {
+              editIndex.current = index;
+              setAddVisible(true);
+            }}
+          />
+          <div className="info">
+            使用 &nbsp;
+            <UpOutlined />
+            <DownOutlined />
+            &nbsp; 切换历史记录
+          </div>
+          <div className="scroller">
+            {manager.list.map((ele, index) => {
+              const key = index.toString();
+              return (
+                <Message
+                  {...ele}
+                  index={key}
+                  isActive={key === active}
+                  setActive={mouseActiveChange}
+                  key={ele.time + ele.data + index}
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {tab === "1" && (
+        <div className="content">
+          <BookMark />
+        </div>
+      )}
     </div>
   );
 }
