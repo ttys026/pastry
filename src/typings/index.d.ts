@@ -3,3 +3,9 @@ interface BookMark {
   link: string;
   createTime: string;
 }
+
+declare const process = {
+  env: {
+    NODE_ENV: "development",
+  },
+};

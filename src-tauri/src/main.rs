@@ -35,14 +35,15 @@ fn run_shell(prog: String, arg: String) -> Result<String, String> {
     let mut command = std::process::Command::new(prog);
     let args = arg.split(' ');
     for arg in args {
-        command.arg(arg);
+        command
+            .current_dir(tauri::api::path::home_dir().expect("/"))
+            .arg(arg);
     }
     if let Ok(child) = command.spawn() {
         Ok(child.id().to_string().into())
     } else {
         Err("This failed!".into())
     }
-    // let pid = sh("/Users/bytedance/Library/Android/sdk/emulator/emulator -avd Pixel_3a_API_34_extension_level_7_arm64-v8a");
 }
 
 fn main() {

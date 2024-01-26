@@ -1,3 +1,4 @@
+import { createPromise } from "./promise";
 import { STORE_KEY, storage } from "./storage";
 
 export interface ClipItem {
@@ -77,12 +78,15 @@ const isSame = (a: ClipItem, b: ClipItem) => {
 //   },
 // ];
 
+const lock = createPromise();
+
 class Manager {
   private _list: ClipItem[] = [];
   private _pins: (ClipItem & { title: string })[] = [];
   private keyword = "";
   private limit = 100;
   private callbacks: (() => void)[] = [];
+  public ready = lock.promise;
 
   public get list() {
     return this._list.filter((ele) => {
@@ -98,6 +102,7 @@ class Manager {
     const init = async () => {
       this._list = JSON.parse(await storage.get(STORE_KEY.HISTORY));
       this._pins = JSON.parse(await storage.get(STORE_KEY.PINS));
+      lock.resolve();
       this.notify();
     };
 

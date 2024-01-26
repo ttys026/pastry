@@ -20,9 +20,6 @@ dependencies:
   '@tauri-apps/api':
     specifier: ^1.5.0
     version: 1.5.1
-  '@tauri-apps/plugin-shell':
-    specifier: 2.0.0-alpha.5
-    version: 2.0.0-alpha.5
   ahooks:
     specifier: ^3.7.8
     version: 3.7.8(react@18.2.0)
@@ -49,6 +46,9 @@ devDependencies:
   '@tauri-apps/cli':
     specifier: ^1.5.0
     version: 1.5.6
+  '@types/node':
+    specifier: ^18
+    version: 18.19.9
   '@types/react':
     specifier: ^18.2.15
     version: 18.2.37
@@ -63,7 +63,7 @@ devDependencies:
     version: 5.2.2
   vite:
     specifier: ^4.4.4
-    version: 4.5.0
+    version: 4.5.0(@types/node@18.19.9)
 
 packages:
 
@@ -737,11 +737,6 @@ packages:
     engines: {node: '>= 14.6.0', npm: '>= 6.6.0', yarn: '>= 1.19.1'}
     dev: false
 
-  /@tauri-apps/api@2.0.0-alpha.13:
-    resolution: {integrity: sha512-sGgCkFahF3OZAHoGN5Ozt9WK7wJlbVZSgWpPQKNag4nSOX1+Py6VDRTEWriiJHDiV+gg31CWHnNXRy6TFoZmdA==}
-    engines: {node: '>= 18', npm: '>= 6.6.0', yarn: '>= 1.19.1'}
-    dev: false
-
   /@tauri-apps/cli-darwin-arm64@1.5.6:
     resolution: {integrity: sha512-NNvG3XLtciCMsBahbDNUEvq184VZmOveTGOuy0So2R33b/6FDkuWaSgWZsR1mISpOuP034htQYW0VITCLelfqg==}
     engines: {node: '>= 10'}
@@ -853,12 +848,6 @@ packages:
       '@tauri-apps/cli-win32-x64-msvc': 1.5.6
     dev: true
 
-  /@tauri-apps/plugin-shell@2.0.0-alpha.5:
-    resolution: {integrity: sha512-iAurwn0z16NLOLaiuk3ETLtoG6x/mgFZo75YYKYLiOg70PYMr4LpcjvNPoIPvokdqWWPa7C/6N3eE9jtcbQiLg==}
-    dependencies:
-      '@tauri-apps/api': 2.0.0-alpha.13
-    dev: false
-
   /@types/babel__core@7.20.4:
     resolution: {integrity: sha512-mLnSC22IC4vcWiuObSRjrLd9XcBTGf59vUSoq2jkQDJ/QQ8PMI9rSuzE+aEV8karUMbskw07bKYoUJCKTUaygg==}
     dependencies:
@@ -891,6 +880,12 @@ packages:
   /@types/js-cookie@2.2.7:
     resolution: {integrity: sha512-aLkWa0C0vO5b4Sr798E26QgOkss68Un0bLjs7u9qxzPT5CG+8DuNTffWES58YzJs3hrVAOs1wonycqEBqNJubA==}
     dev: false
+
+  /@types/node@18.19.9:
+    resolution: {integrity: sha512-oZFKlC8l5YtzGQNT4zC2PiSSKzQVZ8bAwwd+EYdPLtyk0nSEq6O16SkK+rkkT2eflDAbormJgEF3QnH3oDrTSw==}
+    dependencies:
+      undici-types: 5.26.5
+    dev: true
 
   /@types/prop-types@15.7.10:
     resolution: {integrity: sha512-mxSnDQxPqsZxmeShFH+uwQ4kO4gcJcGahjjMFeLbKE95IAZiiZyiEepGZjtXJ7hN/yfu0bu9xN2ajcU0JcxX6A==}
@@ -925,7 +920,7 @@ packages:
       '@babel/plugin-transform-react-jsx-source': 7.23.3(@babel/core@7.23.3)
       '@types/babel__core': 7.20.4
       react-refresh: 0.14.0
-      vite: 4.5.0
+      vite: 4.5.0(@types/node@18.19.9)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -1890,6 +1885,10 @@ packages:
     hasBin: true
     dev: true
 
+  /undici-types@5.26.5:
+    resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
+    dev: true
+
   /update-browserslist-db@1.0.13(browserslist@4.22.1):
     resolution: {integrity: sha512-xebP81SNcPuNpPP3uzeW1NYXxI3rxyJzF3pD6sH4jE7o/IX+WtSpwnVU+qIsDPyk0d3hmFQ7mjqc6AtV604hbg==}
     hasBin: true
@@ -1901,7 +1900,7 @@ packages:
       picocolors: 1.0.0
     dev: true
 
-  /vite@4.5.0:
+  /vite@4.5.0(@types/node@18.19.9):
     resolution: {integrity: sha512-ulr8rNLA6rkyFAlVWw2q5YJ91v098AFQ2R0PRFwPzREXOUJQPtFUG0t+/ZikhaOCDqFoDhN6/v8Sq0o4araFAw==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
@@ -1929,6 +1928,7 @@ packages:
       terser:
         optional: true
     dependencies:
+      '@types/node': 18.19.9
       esbuild: 0.18.20
       postcss: 8.4.31
       rollup: 3.29.4

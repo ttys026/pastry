@@ -1,0 +1,74 @@
+.box {
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  padding: 24px;
+  text-align: start;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: relative;
+  scroll-margin-block: 1px;
+}
+
+.box img {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.box span {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.box .actions {
+  position: absolute;
+  top: 0;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.hover {
+  border-color: rgb(22, 119, 255);
+  background-color: #e6f4ff;
+  cursor: pointer;
+}
+
+.box.hover * {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.box:last-of-type {
+  margin-bottom: 0;
+}
+
+.box:focus-within {
+  background-color: rgba(22, 119, 255, 0.1);
+  box-shadow: none;
+  border-color: transparent;
+  outline: none;
+}
+
+.footer {
+  position: absolute;
+  bottom: 4px;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+  width: calc(100% - (2 * var(--hGap)));
+  display: flex;
+  justify-content: space-between;
+}
+
+.ocr {
+  flex: 1;
+  width: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 16px;
+}
+
+.ocr:hover {
+  color: rgb(22, 119, 255);
+}

@@ -11,11 +11,12 @@ export const hidePanelAndOpen = async (link: string, app?: string) => {
   await open(link, app);
 };
 
-export const hidePanelAndExec = async () => {
+export const hidePanelAndExec = async (cmd: string) => {
+  const [prg, ...rest] = cmd.split(" ");
   await invoke("hide_spotlight");
   await invoke("run_shell", {
-    prog: "emulator",
-    arg: "-avd Pixel_3a_API_34_extension_level_7_arm64-v8a",
+    prog: prg,
+    arg: rest.join(" "),
   })
     .then(console.log)
     .catch(console.warn);

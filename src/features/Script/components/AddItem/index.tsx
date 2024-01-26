@@ -1,18 +1,17 @@
 import { useEffect, useState } from "react";
 import { Input, Modal } from "antd";
-import { manager } from "@/utils/history";
 
 interface Props {
   visible: boolean;
   onChange: (v: boolean) => void;
-  index: number;
+  onConfirm: (v: BookMark) => void;
+  data?: BookMark;
 }
 
 export default (props: Props) => {
-  const { visible, onChange, index } = props;
-  const pin = manager.pins[index];
-  const [title, setTitle] = useState(pin?.title || "");
-  const [data, setData] = useState(pin?.data || "");
+  const { visible, onChange, data, onConfirm } = props;
+  const [title, setTitle] = useState(() => data?.title || "");
+  const [link, setLink] = useState(() => data?.link || "");
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -26,18 +25,17 @@ export default (props: Props) => {
       afterClose={() => {
         onChange(false);
       }}
-      title={`${pin ? "修改" : "添加"}快捷方式`}
+      title={`${data ? "修改" : "添加"}书签`}
       onCancel={() => setOpen(false)}
       open={open}
       cancelText="取消"
       okText="确定"
       onOk={() => {
-        if (!pin) {
-          manager.addPin({ title, data });
-        } else {
-          manager.editPin({ title, data, index });
-        }
-
+        onConfirm({
+          title,
+          link,
+          createTime: `${data?.createTime || Date.now()}`,
+        });
         setOpen(false);
       }}
     >
@@ -45,8 +43,8 @@ export default (props: Props) => {
       <Input value={title} onChange={(e) => setTitle(e.target.value)} />
       <div style={{ margin: "16px 0 8px" }}>内容</div>
       <Input.TextArea
-        value={data}
-        onChange={(e) => setData(e.target.value)}
+        value={link}
+        onChange={(e) => setLink(e.target.value)}
         autoSize={{
           maxRows: 6,
           minRows: 3,

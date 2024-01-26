@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { hidePanelAndOpen } from "@/utils/paste";
+import { hidePanelAndExec } from "@/utils/paste";
 import "./index.css";
 import { useContextMenu } from "@/hooks/useContextMenu";
 import { memo, useRef } from "react";
@@ -30,7 +30,7 @@ export default memo(
         className="book-mark-item shortcutItem"
         data-index={item.createTime}
         onClick={async () => {
-          hidePanelAndOpen(item.link);
+          hidePanelAndExec(item.link);
         }}
         ref={(node) => {
           ref.current = node;
@@ -40,7 +40,7 @@ export default memo(
         {...attributes}
         {...listeners}
       >
-        {item.title || "书签"}
+        {item.title || "脚本"}
       </div>
     );
   }

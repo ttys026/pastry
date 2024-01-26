@@ -16,7 +16,7 @@ import { useMemoizedFn } from "ahooks";
 
 export default () => {
   const [visible, setVisible] = useState(false);
-  const [items, setItems] = useStorageState<BookMark[]>("bookmarks", []);
+  const [items, setItems] = useStorageState<BookMark[]>("scripts", []);
   const data = useRef<BookMark>();
 
   const add = (v: BookMark) => {
