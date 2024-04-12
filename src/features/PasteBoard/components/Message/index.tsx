@@ -35,7 +35,7 @@ function Message(
       onClick={paste}
     >
       {isText ? (
-        <span>{props.data}</span>
+        <span>{props.data?.slice?.(0, 200)}</span>
       ) : (
         <>
           <img height={40} src={`data:image/png;base64,${props.data}`} />
